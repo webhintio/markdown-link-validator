@@ -23,23 +23,17 @@ import { MDFile } from './mdfile';
 const getMDFiles = async (directory): Promise<IMDFile[]> => {
     const filesPath = await globby('**/*.md', { cwd: directory });
 
-    const result = [];
-
-    filesPath.forEach((relativePath) => {
+    return filesPath.map((relativePath) => {
         const file = new MDFile(directory, relativePath);
 
-        result.push(file);
+        return file;
     });
-
-    return result;
 };
 
 const validateLinks = async (mdFiles: IMDFile[]): Promise<void> => {
-    const promises: Promise<void>[] = [];
-
-    for (const mdFile of mdFiles) {
-        promises.push(mdFile.validateLinks());
-    }
+    const promises: Promise<void>[] = mdFiles.map((mdFile) => {
+        return mdFile.validateLinks();
+    });
 
     await Promise.all(promises);
 };
@@ -52,36 +46,60 @@ const getInvalidLinks = (mdFiles: IMDFile[]): ILink[] => {
     }, []);
 };
 
-const reportInvalidLinks = (mdFiles: IMDFile[], directory: string): void => {
-    let totalInvalidLinks = 0;
+const reportLinks = (mdFiles: IMDFile[], directory: string): void => {
+    const totalLinks = {
+        error: 0,
+        success: 0
+    };
 
     mdFiles.forEach((mdFile) => {
-        let totalInFile = 0;
-
-        if (mdFile.invalidLinks.size === 0) {
-            return;
-        }
+        const totalLinksInFile = {
+            error: 0,
+            success: 0
+        };
 
         console.log('');
         console.log(chalk.cyan(mdFile.path));
 
-        mdFile.invalidLinks.forEach((link) => {
-            totalInFile++;
-            console.log(`Line: ${link.position.line} Column: ${link.position.line} Link: ${link.link}`);
+        mdFile.links.forEach((link) => {
+            if (link.isValid) {
+                totalLinksInFile.success++;
+                console.log(chalk.green(`✔ ${link.link}`));
+
+                return;
+            }
+            totalLinksInFile.error++;
+
+            console.log(chalk.red(`✖ ${link.link}:${link.position.line}:${link.position.column}`));
         });
 
-        totalInvalidLinks += totalInFile;
+        totalLinks.success += totalLinksInFile.success;
+        totalLinks.error += totalLinksInFile.error;
 
-        if (totalInFile > 0) {
-            console.log('');
-            console.log(chalk.red(`Found ${totalInFile} invalid links`));
+        console.log('');
+
+        let chalkColor = chalk.green;
+
+        if (totalLinksInFile.error > 0) {
+            chalkColor = chalk.red;
         }
+
+        console.log(chalkColor(`Found ${totalLinksInFile.error + totalLinksInFile.success} links:
+    ${totalLinksInFile.success} valid
+    ${totalLinksInFile.error} invalid`));
     });
 
-    if (totalInvalidLinks > 0) {
-        console.log('');
-        console.log(chalk.red(`Found a total of ${totalInvalidLinks} invalid links in directory: ${directory}`));
+    console.log('');
+
+    let chalkColor = chalk.green;
+
+    if (totalLinks.error > 0) {
+        chalkColor = chalk.red;
     }
+
+    console.log(chalk.red(`Found a total of ${totalLinks.error + totalLinks.success} links in directory ${directory}:
+    ${totalLinks.success} valid
+    ${totalLinks.error} invalid`));
 };
 
 export const execute = async (args: string[]) => {
@@ -110,7 +128,7 @@ export const execute = async (args: string[]) => {
 
         await validateLinks(mdFiles);
 
-        reportInvalidLinks(mdFiles, directory);
+        reportLinks(mdFiles, directory);
 
         invalidLinks = invalidLinks.concat(getInvalidLinks(mdFiles));
     }

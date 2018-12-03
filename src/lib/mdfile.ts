@@ -29,10 +29,9 @@ export class MDFile implements IMDFile {
      * * [link](#somewhere)
      * * [link] (#somewhere) → invalid link.
      * * [link]( #somewhere)
-     *
-     * The \.? allow us to also match "../"
      */
     private _internalRegex: RegExp = /]\s*\(\s*(#\S*?)\)/g;
+    private _links: Set<ILink>;
     private _path: string;
     private _relativeLinks: Set<ILink>;
     private _relativePath: string;
@@ -294,5 +293,15 @@ export class MDFile implements IMDFile {
         this._invalidLinks = new Set(invalidAbsoluteLinks.concat(invalidRelativeLinks).concat(invalidInternalLinks));
 
         return this._invalidLinks;
+    }
+
+    public get links(): Set<ILink> {
+        if (this._links) {
+            return this._links;
+        }
+
+        this._links = new Set([...this._absoluteLinks, ...this._relativeLinks, ...this._internalLinks]);
+
+        return this._links;
     }
 }

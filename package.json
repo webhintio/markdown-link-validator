@@ -10,6 +10,9 @@
     ],
     "timeout": "1m"
   },
+  "bin": {
+    "markdown-link-validator": "./dist/src/bin/markdown-link-validator.js"
+  },
   "dependencies": {
     "chalk": "^2.4.1",
     "debug": "^4.1.0",
@@ -39,13 +42,15 @@
     "typescript-eslint-parser": "^21.0.1"
   },
   "description": "Validate markdown links",
+  "files": [
+    "dist/src"
+  ],
   "homepage": "https://github.com/webhintio/markdown-link-validator#readme",
   "keywords": [
     "markdown",
     "validator"
   ],
   "license": "Apache-2.0",
-  "main": "dist/src",
   "name": "markdown-link-validator",
   "scripts": {
     "build": "npm run clean && npm-run-all build:*",

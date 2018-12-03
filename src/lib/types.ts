@@ -24,6 +24,7 @@ export interface IMDFile {
     absoluteLinks: Set<ILink>;
     internalLinks: Set<ILink>;
     invalidLinks: Set<ILink>;
+    links: Set<ILink>;
     path: string;
     relativeLinks: Set<ILink>;
     relativePath: string;
