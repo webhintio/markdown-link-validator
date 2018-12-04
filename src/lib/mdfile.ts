@@ -4,9 +4,6 @@ import * as path from 'path';
 import * as uslug from 'uslug';
 
 import * as request from './utils/request';
-import { debug as d } from './utils/debug';
-
-const debug: debug.IDebugger = d(__filename);
 
 import { IMDFile, ILink } from './types';
 import { Link } from './link';

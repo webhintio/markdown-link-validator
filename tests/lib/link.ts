@@ -38,7 +38,7 @@ test('An exception is thrown if "link" is not set', (t) => {
 });
 
 test('Create a new Link has to set everything right', (t) => {
-    const link = new Link('#accessibility', 47, content);
+    const link = new Link('#accessibility', 45, content);
 
     t.is(link.link, '#accessibility');
     t.is(link.position.line, 3);

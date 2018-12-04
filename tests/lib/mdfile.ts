@@ -1,7 +1,16 @@
 import * as sinon from 'sinon';
 import test from 'ava';
+import * as mock from 'mock-require';
 
-import { MDFile } from '../../src/lib/mdfile';
+const request = {
+    get(): Promise<boolean> {
+        return Promise.resolve(false);
+    }
+};
+
+mock('../../src/lib/utils/request.js', request);
+
+const { MDFile } = require('../../src/lib/mdfile');
 
 const internalPositions = {
     '#can-evaluatescript': {
@@ -157,6 +166,7 @@ test('Invalid internal links are validated correctly', async (t) => {
 });
 
 test('Absolute links positions are calculated correctly', (t) => {
+    const { MDFile } = require('../../src/lib/mdfile');
     const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md');
 
     mdfile.absoluteLinks.forEach((link) => {
@@ -167,8 +177,8 @@ test('Absolute links positions are calculated correctly', (t) => {
     });
 });
 
-test.serial('Absolute links are validated correctly', async (t) => {
-    const stub: sinon.SinonStub<string[], any> = sinon.stub(MDFile.prototype as any, 'existsUrl') as sinon.SinonStub<string[], any>;
+test('Absolute links are validated correctly', async (t) => {
+    const stub: sinon.SinonStub<string[], Promise<boolean>> = sinon.stub(request, 'get') as sinon.SinonStub<string[], Promise<boolean>>;
 
     stub.withArgs('https://webhint.io/docs/hints/hint-highest-available-document-mode/')
         .resolves(false);
@@ -202,7 +212,7 @@ test('Relative links positions are calculated correctly', (t) => {
     });
 });
 
-test.serial('Relative links are validated correctly', async (t) => {
+test('Relative links are validated correctly', async (t) => {
     const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md');
 
     await mdfile.validateLinks();

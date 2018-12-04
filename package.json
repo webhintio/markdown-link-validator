@@ -17,6 +17,7 @@
     "chalk": "^2.4.1",
     "debug": "^4.1.0",
     "globby": "^8.0.1",
+    "mock-require": "^3.0.2",
     "optionator": "^0.8.2",
     "request": "^2.88.0",
     "uslug": "^1.0.4"
