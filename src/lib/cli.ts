@@ -41,7 +41,7 @@ const getInvalidLinks = (mdFiles: IMDFile[]): ILink[] => {
     return mdFiles.reduce((total, mdFile) => {
         const invalidLinks = [...mdFile.invalidLinks];
 
-        return total.concat(invalidLinks);
+        return [...total, ...mdFile.invalidLinks];
     }, []);
 };
 
