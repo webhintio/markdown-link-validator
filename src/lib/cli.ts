@@ -21,7 +21,7 @@ import { CLIOptions, IMDFile, ILink } from './types';
 import { MDFile } from './mdfile';
 
 const getMDFiles = async (directory): Promise<IMDFile[]> => {
-    const filesPath = await globby('**/*.md', { cwd: directory });
+    const filesPath = await globby(['**/*.md', '!node_modules', '!**/node_modules'], { cwd: directory });
 
     return filesPath.map((relativePath) => {
         const file = new MDFile(directory, relativePath);
@@ -31,11 +31,10 @@ const getMDFiles = async (directory): Promise<IMDFile[]> => {
 };
 
 const validateLinks = async (mdFiles: IMDFile[]): Promise<void> => {
-    const promises: Promise<void>[] = mdFiles.map((mdFile) => {
-        return mdFile.validateLinks();
-    });
-
-    await Promise.all(promises);
+    for (const mdFile of mdFiles) {
+        // Validate file by file to prevent 429 and socket hang up errors.
+        await mdFile.validateLinks();
+    }
 };
 
 const getInvalidLinks = (mdFiles: IMDFile[]): ILink[] => {
@@ -97,11 +96,16 @@ const reportLinks = (mdFiles: IMDFile[], directory: string): void => {
         chalkColor = chalk.red;
     }
 
-    console.log(chalk.red(`Found a total of ${totalLinks.error + totalLinks.success} links in directory ${directory}:
+    console.log(chalkColor(`Found a total of ${totalLinks.error + totalLinks.success} links in directory "${directory}":
     ${totalLinks.success} valid
     ${totalLinks.error} invalid`));
 };
 
+/**
+ * Execute the analysis for the directories passed as parameter.
+ * * e.g. markdown-link-validator ./documentation
+ * * e.g. markdown-link-validator ./docs --debug
+ */
 export const execute = async (args: string[]) => {
     let currentOptions: CLIOptions;
 
@@ -122,6 +126,8 @@ export const execute = async (args: string[]) => {
 
     let invalidLinks = [];
 
+    const start = Date.now();
+
     for (const directory of directories) {
         /* Get all md files */
         const mdFiles = await getMDFiles(directory);
@@ -132,6 +138,8 @@ export const execute = async (args: string[]) => {
 
         invalidLinks = invalidLinks.concat(getInvalidLinks(mdFiles));
     }
+
+    console.log(`Time to validate: ${(Date.now() - start) / 1000}s`);
 
     if (invalidLinks.length > 0) {
         return 1;

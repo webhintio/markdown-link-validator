@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
+
 import * as uslug from 'uslug';
 
+import * as request from './utils/request';
 import { debug as d } from './utils/debug';
-import * as r from 'request';
 
-const request = r.defaults({ strictSSL: false });
 const debug: debug.IDebugger = d(__filename);
 
 import { IMDFile, ILink } from './types';
@@ -19,7 +19,7 @@ export class MDFile implements IMDFile {
      * * [link label]: https://exxample.com
      * * <img src="http://example.com/avatar.jpg">
      */
-    private _absoluteRegex: RegExp = /(]\(|]:\s*|src=")(https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*))/g;
+    private _absoluteRegex: RegExp = /(]\(|]:\s*)(https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%,*_+.~#?&//=]*))/g;
     private _cache: Set<string>;
     private _content: string;
     private _internalLinks: Set<ILink>;
@@ -139,34 +139,11 @@ export class MDFile implements IMDFile {
         }
     }
 
-    private existsUrl(url: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            debug(`Checking ${url} ...`);
-            request(url, (error, response) => {
-                if (error) {
-                    debug(`Error checking ${url}: ${error}`);
-
-                    return resolve(false);
-                }
-
-                if (response.statusCode !== 200) {
-                    debug(`Status code for ${url}: ${response.statusCode}`);
-
-                    return resolve(false);
-                }
-
-                debug(`${url} OK`);
-
-                return resolve(true);
-            });
-        });
-    }
-
     private async validateAbsoluteLinks(): Promise<void> {
         const promises: Promise<void>[] = [];
 
         for (const link of this._absoluteLinks) {
-            const promise: Promise<void> = this.existsUrl(link.link)
+            const promise: Promise<void> = request.get(link.link)
                 .then((linkExists): void => {
                     link.isValid = linkExists;
                 });
