@@ -19,6 +19,7 @@ export class MDFile implements IMDFile {
     private _absoluteRegex: RegExp = /(]\(|]:\s*)(https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%,*_+.~#?&//=]*))/g;
     private _cache: Set<string>;
     private _content: string;
+    private _ignorePatterns: RegExp[];
     private _internalLinks: Set<ILink>;
     private _invalidLinks: Set<ILink>;
     /**
@@ -46,7 +47,7 @@ export class MDFile implements IMDFile {
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
 
-    public constructor(directory: string, relativePath: string) {
+    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[]) {
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
         this._absoluteLinks = new Set();
@@ -55,6 +56,7 @@ export class MDFile implements IMDFile {
         this._relativeLinks = new Set();
         this._titles = new Set();
         this._normalizedTitles = new Set();
+        this._ignorePatterns = ignorePatterns;
 
         this._content = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
 
@@ -136,10 +138,22 @@ export class MDFile implements IMDFile {
         }
     }
 
+    private ignoreLink(url: string): boolean {
+        return this._ignorePatterns.some((pattern) => {
+            return pattern.test(url);
+        });
+    }
+
     private async validateAbsoluteLinks(): Promise<void> {
         const promises: Promise<void>[] = [];
 
         for (const link of this._absoluteLinks) {
+            if (this.ignoreLink(link.link)) {
+                link.isValid = true;
+
+                continue;
+            }
+
             const promise: Promise<void> = request.get(link.link)
                 .then((linkExists): void => {
                     link.isValid = linkExists;
@@ -152,6 +166,12 @@ export class MDFile implements IMDFile {
     }
 
     private validateRelativeLink(link: ILink): void {
+        if (this.ignoreLink(link.link)) {
+            link.isValid = true;
+
+            return;
+        }
+
         const fullPath = path.join(path.dirname(this._path), link.link);
         const [filePath, hash] = fullPath.split('#');
 
@@ -200,6 +220,12 @@ export class MDFile implements IMDFile {
     }
 
     private validateInternalLink(link: ILink): void {
+        if (this.ignoreLink(link.link)) {
+            link.isValid = true;
+
+            return;
+        }
+
         if (this._normalizedTitles.has(link.link.substr(1))) {
             link.isValid = true;
 

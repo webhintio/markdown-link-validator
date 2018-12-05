@@ -1,6 +1,7 @@
 export type CLIOptions = {
     _: string[];
-    pattern: string;
+    ignorePatterns: string[];
+    flags: string;
     debug: boolean;
 };
 

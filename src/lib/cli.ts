@@ -20,11 +20,11 @@ import { options } from './cli/options';
 import { CLIOptions, IMDFile, ILink } from './types';
 import { MDFile } from './mdfile';
 
-const getMDFiles = async (directory): Promise<IMDFile[]> => {
+const getMDFiles = async (directory, ignorePatterns: RegExp[]): Promise<IMDFile[]> => {
     const filesPath = await globby(['**/*.md', '!node_modules', '!**/node_modules'], { cwd: directory });
 
     return filesPath.map((relativePath) => {
-        const file = new MDFile(directory, relativePath);
+        const file = new MDFile(directory, relativePath, ignorePatterns);
 
         return file;
     });
@@ -105,6 +105,7 @@ const reportLinks = (mdFiles: IMDFile[], directory: string): void => {
  * Execute the analysis for the directories passed as parameter.
  * * e.g. markdown-link-validator ./documentation
  * * e.g. markdown-link-validator ./docs --debug
+ * * e.g. markdown-link-validator ./docs -i https?:\/\/test\.com\/.* -f gi
  */
 export const execute = async (args: string[]) => {
     let currentOptions: CLIOptions;
@@ -116,6 +117,10 @@ export const execute = async (args: string[]) => {
 
         return 1;
     }
+
+    const ignorePatterns = currentOptions.ignorePatterns.map((pattern) => {
+        return new RegExp(pattern, currentOptions.flags);
+    });
 
     /* Get the directories full path */
     const directories = currentOptions._.map((dir) => {
@@ -130,7 +135,7 @@ export const execute = async (args: string[]) => {
 
     for (const directory of directories) {
         /* Get all md files */
-        const mdFiles = await getMDFiles(directory);
+        const mdFiles = await getMDFiles(directory, ignorePatterns);
 
         await validateLinks(mdFiles);
 

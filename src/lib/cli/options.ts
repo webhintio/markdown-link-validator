@@ -22,14 +22,23 @@ export const options = optionator({
         mergeRepeatedObjects: true
     },
     options: [
-        {heading: 'Basic configuration'},
+        { heading: 'Basic configuration' },
         {
-            alias: 'p',
-            description: 'Pattern to ignore links (work in progress)',
-            option: 'pattern',
+            alias: 'i',
+            concatRepeatedArrays: [true, { oneValuePerFlag: true }],
+            default: '[]',
+            description: 'Regex to ignore links',
+            option: 'ignorePatterns',
+            type: 'path::[String]'
+        },
+        {
+            alias: 'f',
+            dependsOn: 'ignorePatterns',
+            description: 'Flags applied to the ignore pattern',
+            option: 'flags',
             type: 'path::String'
         },
-        {heading: 'Miscellaneous'},
+        { heading: 'Miscellaneous' },
         {
             default: false,
             description: 'Output debugging information',
