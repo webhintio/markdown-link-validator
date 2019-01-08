@@ -61,6 +61,6 @@
     "test": "npm run lint && npm run build && nyc ava",
     "watch:ts": "npm run build:ts -- --watch"
   },
-  "repository": "https://github.com/webhintio/markdown-link-validator",
+  "repository": "webhintio/markdown-link-validator",
   "version": "1.0.0"
 }
