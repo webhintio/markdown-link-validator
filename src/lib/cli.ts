@@ -13,7 +13,7 @@ import * as path from 'path';
 import { debug as d } from './utils/debug';
 import * as globby from 'globby';
 import chalk from 'chalk';
-import * as chunk from 'lodash.chunk';
+import wrapPromise from './utils/wrappromise';
 
 const debug: debug.IDebugger = d(__filename);
 
@@ -32,16 +32,27 @@ const getMDFiles = async (directory, ignorePatterns: RegExp[]): Promise<IMDFile[
 };
 
 const validateLinks = async (mdFiles: IMDFile[]): Promise<void> => {
-    const chunks = chunk(mdFiles, 10);
+    const limit = 10;
+    const promises = [];
 
-    for (const chk of chunks) {
-        // Validate file by file to prevent 429 and socket hang up errors.
-        const promises = chk.map((mdFile: IMDFile) => {
-            return mdFile.validateLinks();
-        });
+    for (const mdFile of mdFiles) {
+        promises.push(wrapPromise(mdFile.validateLinks()));
 
-        await Promise.all(promises);
+        if (promises.length >= limit) {
+            // Wait for a file to be validated.
+            await Promise.race(promises);
+
+            // Remove the resolved/rejected file from the promises array.
+            const index = promises.findIndex((promise) => {
+                return promise.resolved || promise.rejected;
+            });
+
+            promises.splice(index, 1);
+        }
     }
+
+    // Wait for the pending promises to be resolved/rejected.
+    await Promise.all(promises);
 };
 
 const getInvalidLinks = (mdFiles: IMDFile[]): ILink[] => {
@@ -124,6 +135,8 @@ export const execute = async (args: string[]) => {
 
         return 1;
     }
+
+    console.log('Analyzing...');
 
     const ignorePatterns = currentOptions.ignorePatterns.map((pattern) => {
         return new RegExp(pattern, currentOptions.flags);

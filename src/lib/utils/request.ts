@@ -71,7 +71,7 @@ const getUrl = (url: string, method: string): Promise<boolean> => {
             }
 
             req.on('error', (e) => {
-                console.error(`problem with request: ${e.message} - ${url}`);
+                debug(`problem with request: ${e.message} - ${url}`);
 
                 return resolve(false);
             });
