@@ -3,6 +3,7 @@ import * as https from 'https';
 import { URL } from 'url';
 
 import { debug as d } from './debug';
+import delay from './delay';
 
 const debug: debug.IDebugger = d(__filename);
 
@@ -95,7 +96,19 @@ export const get = async (url: string): Promise<boolean> => {
     // Sometimes, head doesn't work, so we need to double check using the 'get' method.
     if (!isOk) {
         while (!isOk && retries > 0) {
+            // Check if the value is now in the cache.
+            if (cache.has(url)) {
+                debug(`Getting value from cache for url: ${url}`);
+
+                return cache.get(url);
+            }
+
             isOk = await getUrl(url, 'get');
+
+            if (!isOk) {
+                await delay(500);
+            }
+
             retries--;
         }
     }

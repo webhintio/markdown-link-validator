@@ -13,6 +13,7 @@ import * as path from 'path';
 import { debug as d } from './utils/debug';
 import * as globby from 'globby';
 import chalk from 'chalk';
+import * as chunk from 'lodash.chunk';
 
 const debug: debug.IDebugger = d(__filename);
 
@@ -31,9 +32,15 @@ const getMDFiles = async (directory, ignorePatterns: RegExp[]): Promise<IMDFile[
 };
 
 const validateLinks = async (mdFiles: IMDFile[]): Promise<void> => {
-    for (const mdFile of mdFiles) {
+    const chunks = chunk(mdFiles, 10);
+
+    for (const chk of chunks) {
         // Validate file by file to prevent 429 and socket hang up errors.
-        await mdFile.validateLinks();
+        const promises = chk.map((mdFile: IMDFile) => {
+            return mdFile.validateLinks();
+        });
+
+        await Promise.all(promises);
     }
 };
 
