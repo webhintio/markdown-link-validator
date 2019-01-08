@@ -1,4 +1,6 @@
-import * as r from 'request';
+import * as http from 'http';
+import * as https from 'https';
+import { URL } from 'url';
 
 import { debug as d } from './debug';
 
@@ -6,32 +8,77 @@ const debug: debug.IDebugger = d(__filename);
 
 const cache: Map<string, boolean> = new Map();
 
-const request = r.defaults({
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36' },
-    strictSSL: false
-});
+const defaultOptions: https.RequestOptions = {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' },
+    rejectUnauthorized: false
+};
+
+const getHttpOptions = (url: URL, method: string): https.RequestOptions => {
+    return Object.assign({
+        hostname: url.hostname,
+        method,
+        path: `${url.pathname}${url.search}`,
+        protocol: url.protocol
+    }, defaultOptions);
+};
 
 const getUrl = (url: string, method: string): Promise<boolean> => {
     return new Promise((resolve) => {
         debug(`Checking ${url} ...`);
+        let redirects = 10;
 
-        request(url, { method }, (error, response) => {
-            if (error) {
-                debug(`Error checking ${url}: ${error}`);
+        const get = (urlString: string, base?: string) => {
+            let urlObject: URL;
 
-                return resolve(false);
+            try {
+                urlObject = new URL(urlString);
+            } catch (e) {
+                urlObject = new URL(urlString, base);
             }
 
-            if (response.statusCode !== 200) {
-                debug(`Status code for ${url}: ${response.statusCode}`);
+            const options: https.RequestOptions = getHttpOptions(urlObject, method);
 
-                return resolve(false);
+            const callback = (res) => {
+                res.setEncoding('utf8');
+                res.on('data', () => { });
+                res.on('end', () => {
+                    if (res.statusCode !== 200) {
+                        debug(`Status code for ${url}: ${res.statusCode}`);
+
+                        // If there is a redirect, check if the destination of the redirect exists.
+                        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects > 0) {
+                            redirects--;
+
+                            return get(res.headers.location, urlObject.href);
+                        }
+
+                        return resolve(false);
+                    }
+
+                    debug(`${url} OK`);
+
+                    return resolve(true);
+                });
+            };
+
+            let req: http.ClientRequest;
+
+            if (options.protocol === 'https:') {
+                req = https.request(options, callback);
+            } else {
+                req = http.request(options, callback);
             }
 
-            debug(`${url} OK`);
+            req.on('error', (e) => {
+                console.error(`problem with request: ${e.message} - ${url}`);
 
-            return resolve(true);
-        });
+                return resolve(false);
+            });
+
+            req.end();
+        };
+
+        get(url);
     });
 };
 
