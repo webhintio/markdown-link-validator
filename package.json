@@ -1,0 +1,66 @@
+{
+  "ava": {
+    "babel": {
+      "presets": []
+    },
+    "concurrency": 5,
+    "failFast": false,
+    "files": [
+      "dist/tests/**/*.js"
+    ],
+    "timeout": "1m"
+  },
+  "bin": {
+    "markdown-link-validator": "./dist/src/bin/markdown-link-validator.js"
+  },
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "debug": "^4.1.0",
+    "globby": "^8.0.1",
+    "lodash.chunk": "^4.2.0",
+    "mock-require": "^3.0.2",
+    "optionator": "^0.8.2",
+    "uslug": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/debug": "0.0.31",
+    "@types/globby": "^8.0.0",
+    "@types/node": "^10.12.10",
+    "@types/sinon": "^5.0.7",
+    "ava": "^0.25.0",
+    "cpx": "^1.5.0",
+    "eslint": "^5.9.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-markdown": "^1.0.0-rc.0",
+    "eslint-plugin-typescript": "^0.14.0",
+    "npm-run-all": "^4.1.5",
+    "nyc": "^13.1.0",
+    "rimraf": "^2.6.2",
+    "sinon": "^7.1.1",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.6",
+    "typescript-eslint-parser": "^21.0.1"
+  },
+  "description": "Validate markdown links",
+  "files": [
+    "dist/src"
+  ],
+  "homepage": "https://github.com/webhintio/markdown-link-validator#readme",
+  "keywords": [
+    "markdown",
+    "validator"
+  ],
+  "license": "Apache-2.0",
+  "name": "markdown-link-validator",
+  "scripts": {
+    "build": "npm run clean && npm-run-all build:*",
+    "build:assets": "cpx \"./{src,tests}/**/{!(*.ts),.!(ts)}\" dist",
+    "build:ts": "tsc --outDir dist",
+    "clean": "rimraf dist",
+    "lint": "eslint --ext ts --ignore-pattern dist .",
+    "test": "npm run lint && npm run build && nyc ava",
+    "watch:ts": "npm run build:ts -- --watch"
+  },
+  "repository": "webhintio/markdown-link-validator",
+  "version": "1.0.0"
+}

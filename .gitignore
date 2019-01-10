@@ -23,3 +23,8 @@ node_modules/
 # Visual Studio Code
 .vscode
  
+# Compiled files
+dist/
+
+# Test output
+.nyc_output/
