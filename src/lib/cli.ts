@@ -136,6 +136,12 @@ export const execute = async (args: string[]) => {
         return 1;
     }
 
+    if (currentOptions.help) {
+        console.log(options.generateHelp());
+
+        return 0;
+    }
+
     console.log('Analyzing...');
 
     const ignorePatterns = currentOptions.ignorePatterns.map((pattern) => {

@@ -1,8 +1,9 @@
 export type CLIOptions = {
     _: string[];
-    ignorePatterns: string[];
-    flags: string;
     debug: boolean;
+    flags: string;
+    help: boolean;
+    ignorePatterns: string[];
 };
 
 export type Issue = {

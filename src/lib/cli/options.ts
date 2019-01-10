@@ -38,6 +38,12 @@ export const options = optionator({
             option: 'flags',
             type: 'path::String'
         },
+        {
+            alias: 'h',
+            description: 'Show help',
+            option: 'help',
+            type: 'Boolean'
+        },
         { heading: 'Miscellaneous' },
         {
             default: false,
@@ -46,5 +52,5 @@ export const options = optionator({
             type: 'Boolean'
         }
     ],
-    prepend: 'markdown-link-validator [options] ./docs'
+    prepend: 'markdown-link-validator ./path/to/mds [options]'
 });
