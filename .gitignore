@@ -28,3 +28,4 @@ dist/
 
 # Test output
 .nyc_output/
+coverage/

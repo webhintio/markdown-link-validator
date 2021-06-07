@@ -12,7 +12,7 @@ import * as path from 'path';
 
 import { debug as d } from './utils/debug';
 import * as globby from 'globby';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import wrapPromise from './utils/wrappromise';
 
 const debug: debug.IDebugger = d(__filename);
