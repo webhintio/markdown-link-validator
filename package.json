@@ -58,5 +58,5 @@
     "watch:ts": "npm run build:ts -- --watch"
   },
   "repository": "webhintio/markdown-link-validator",
-  "version": "1.0.0"
+  "version": "1.0.1"
 }
