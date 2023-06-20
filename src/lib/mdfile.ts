@@ -1,12 +1,12 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 
-import * as uslug from 'uslug';
+import uslug from 'uslug';
 
-import * as request from './utils/request';
+import request from './utils/request.js';
 
-import { IMDFile, ILink } from './types';
-import { Link } from './link';
+import { IMDFile, ILink } from './types.js';
+import { Link } from './link.js';
 
 export class MDFile implements IMDFile {
     private _absoluteLinks: Set<ILink>;

@@ -8,18 +8,21 @@
  * when the program exits.
  */
 
-import * as path from 'path';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import { debug as d } from './utils/debug';
-import * as globby from 'globby';
-import * as chalk from 'chalk';
-import wrapPromise from './utils/wrappromise';
+import { debug as d } from './utils/debug.js';
+import { globby } from 'globby';
+import chalk from 'chalk';
+import wrapPromise from './utils/wrappromise.js';
+
+const __filename = fileURLToPath(import.meta.url);
 
 const debug: debug.IDebugger = d(__filename);
 
-import { options } from './cli/options';
-import { CLIOptions, IMDFile, ILink } from './types';
-import { MDFile } from './mdfile';
+import { options } from './cli/options.js';
+import { CLIOptions, IMDFile, ILink } from './types.js';
+import { MDFile } from './mdfile.js';
 
 const getMDFiles = async (directory, ignorePatterns: RegExp[]): Promise<IMDFile[]> => {
     const filesPath = await globby(['**/*.md', '!node_modules', '!**/node_modules'], { cwd: directory });
@@ -125,7 +128,7 @@ const reportLinks = (mdFiles: IMDFile[], directory: string): void => {
  * * e.g. markdown-link-validator ./docs --debug
  * * e.g. markdown-link-validator ./docs -i https?:\/\/test\.com\/.* -f gi
  */
-export const execute = async (args: string[]) => {
+const execute = async (args: string[]) => {
     let currentOptions: CLIOptions;
 
     try {
@@ -178,3 +181,5 @@ export const execute = async (args: string[]) => {
 
     return 0;
 };
+
+export default { execute };

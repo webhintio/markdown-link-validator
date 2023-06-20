@@ -1,6 +1,6 @@
-import * as path from 'path';
+import path from 'path';
 
-import * as d from 'debug';
+import d from 'debug';
 
 const debugEnabled: boolean = (process.argv.includes('--debug'));
 

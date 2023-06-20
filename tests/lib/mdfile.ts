@@ -1,6 +1,10 @@
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import test from 'ava';
-import * as mock from 'mock-require';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const request = {
     get(): Promise<boolean> {
@@ -8,9 +12,7 @@ const request = {
     }
 };
 
-mock('../../src/lib/utils/request.js', request);
-
-const { MDFile } = require('../../src/lib/mdfile');
+import { MDFile } from '../../src/lib/mdfile.js';
 
 const internalPositions = {
     '#can-evaluatescript': {
@@ -166,7 +168,6 @@ test('Invalid internal links are validated correctly', async (t) => {
 });
 
 test('Absolute links positions are calculated correctly', (t) => {
-    const { MDFile } = require('../../src/lib/mdfile');
     const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', []);
 
     mdfile.absoluteLinks.forEach((link) => {

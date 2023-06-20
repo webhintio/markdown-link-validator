@@ -13,7 +13,7 @@
 
 const debug = (process.argv.includes('--debug'));
 
-import * as d from 'debug';
+import d from 'debug';
 
 // This initialization needs to be done *before* other requires in order to work.
 if (debug) {
@@ -25,7 +25,7 @@ if (debug) {
  */
 
 // Now we can safely include the other modules that use debug.
-import * as cli from '../lib/cli';
+import cli from '../lib/cli.js';
 
 /*
  * Execution

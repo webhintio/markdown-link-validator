@@ -1,4 +1,4 @@
-import { ILink, Position } from './types';
+import { ILink, Position } from './types.js';
 
 export class Link implements ILink {
     private _isValid: boolean;

@@ -1,9 +1,11 @@
-import * as http from 'http';
-import * as https from 'https';
-import { URL } from 'url';
+import http from 'http';
+import https from 'https';
+import { URL, fileURLToPath } from 'url';
 
-import { debug as d } from './debug';
-import delay from './delay';
+import { debug as d } from './debug.js';
+import delay from './delay.js';
+
+const __filename = fileURLToPath(import.meta.url);
 
 const debug: debug.IDebugger = d(__filename);
 
@@ -83,7 +85,7 @@ const getUrl = (url: string, method: string): Promise<boolean> => {
     });
 };
 
-export const get = async (url: string): Promise<boolean> => {
+const get = async (url: string): Promise<boolean> => {
     if (cache.has(url)) {
         debug(`Getting value from cache for url: ${url}`);
 
@@ -117,3 +119,5 @@ export const get = async (url: string): Promise<boolean> => {
 
     return isOk;
 };
+
+export default { get };
