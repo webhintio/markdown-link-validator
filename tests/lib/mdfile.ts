@@ -79,17 +79,17 @@ const absolutePositions = {
 const relativeLinks = {
     '../mdfile': {
         column: 36,
-        line: 5,
+        line: 7,
         valid: false
     },
     '../mdfile/valid-internal.md#canevaluatescript': {
         column: 19,
-        line: 22,
+        line: 28,
         valid: false
     },
     '../mdfile/valid-internal.md#elementelement-type': {
         column: 19,
-        line: 21,
+        line: 27,
         valid: true
     },
     './absolute-links.md': {
@@ -99,23 +99,38 @@ const relativeLinks = {
     },
     './invalid-internal.md': {
         column: 18,
-        line: 19,
+        line: 25,
         valid: true
     },
     './invalid.md': {
         column: 19,
-        line: 20,
+        line: 26,
         valid: false
     },
     './valid-internal.md#canevaluatescript': {
         column: 54,
-        line: 9,
+        line: 11,
         valid: false
     },
     './valid-internal.md#elementelement-type': {
         column: 51,
-        line: 7,
+        line: 9,
         valid: true
+    },
+    '/fixtures/mdfile/absolute-links.md': {
+        column: 29,
+        line: 5,
+        valid: true
+    },
+    '/fixtures/mdfile/valid-internal.md': {
+        column: 15,
+        line: 29,
+        valid: true
+    },
+    '/invalid-root.md': {
+        column: 15,
+        line: 30,
+        valid: false
     }
 };
 

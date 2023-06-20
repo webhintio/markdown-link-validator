@@ -32,22 +32,36 @@ export class MDFile implements IMDFile {
     private _links: Set<ILink>;
     private _path: string;
     private _relativeLinks: Set<ILink>;
+    private _directory: string;
     private _relativePath: string;
     /**
      * This regex should match the following examples:
+     * * [link label]: /somewhere.md
      * * [link label]: ./somewhere.md
+     * * [link label]: ../somewhere.md
+     * * [link label]: /somewhere
      * * [link label]: ./somewhere
      * * [link label]: ../somewhere
+     * * [link label]:/somewhere.md
      * * [link label]:./somewhere.md
+     * * [link label]:../somewhere.md
+     * * [link label]:/somewhere
+     * * [link label]:./somewhere
+     * * [link label]:../somewhere
+     * * [link](/somewhere.md)
      * * [link](./somewhere.md)
+     * * [link](../somewhere.md)
+     * * [link](/somewhere/)
      * * [link](./somewhere/)
+     * * [link](../somewhere/)
      */
-    private _relativeRegex: RegExp = /]\((\.[^)]*)\)|(]:\s*)(\.[^\s]*)/g;
+    private _relativeRegex: RegExp = /]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)/g;
     private _titles: Set<string>;
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
 
     public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[]) {
+        this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
         this._absoluteLinks = new Set();
@@ -172,7 +186,7 @@ export class MDFile implements IMDFile {
             return;
         }
 
-        const fullPath = path.join(path.dirname(this._path), link.link);
+        const fullPath = link.link.startsWith('/') ? path.join(this._directory, link.link) : path.join(path.dirname(this._path), link.link);
         const [filePath, hash] = fullPath.split('#');
 
         // Relative links should point to a md file.
