@@ -26,11 +26,12 @@ markdown-link-validator ./path/to/mds [options]
 
 Basic configuration:
   -i, --ignorePatterns path::[String]  Regex to ignore links - default: []
-  -f, --flags path::String  Flags applied to the ignore pattern
-  -h, --help                Show help
+  -f, --flags path::String             Flags applied to the ignore pattern
+  -q, --quietMode Boolean              Show only errors in report
+  -h, --help                           Show help
 
 Miscellaneous:
-  --debug                   Output debugging information
+  --debug                              Output debugging information
 ```
 
 The following will analyze all the `.md` files found under `./docs` and

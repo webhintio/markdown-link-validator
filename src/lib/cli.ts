@@ -66,50 +66,62 @@ const getInvalidLinks = (mdFiles: IMDFile[]): ILink[] => {
     }, []);
 };
 
-const reportLinks = (mdFiles: IMDFile[], directory: string): void => {
+const reportLinks = (mdFiles: IMDFile[], directory: string, quietMode?: boolean): void => {
+    const totalLinksByFile = {};
     const totalLinks = {
         error: 0,
         success: 0
     };
 
     mdFiles.forEach((mdFile) => {
-        const totalLinksInFile = {
+        totalLinksByFile[mdFile.path] = {
             error: 0,
             success: 0
         };
 
-        console.log('');
-        console.log(chalk.cyan(mdFile.path));
+        if (!quietMode) {
+            console.log('');
+
+            console.log(chalk.cyan(mdFile.path));
+        }
 
         mdFile.links.forEach((link) => {
             if (link.isValid) {
-                totalLinksInFile.success++;
-                console.log(chalk.green(`✔ ${link.link}`));
+                totalLinksByFile[mdFile.path].success++;
+
+                if (!quietMode) {
+                    console.log(chalk.green(`✔ ${link.link}`));
+                }
 
                 return;
             }
-            totalLinksInFile.error++;
+            totalLinksByFile[mdFile.path].error++;
+
+            if (quietMode && totalLinksByFile[mdFile.path].error === 1) {
+                console.log('');
+
+                console.log(chalk.cyan(mdFile.path));
+            }
 
             console.log(chalk.red(`✖ ${link.link}:${link.position.line}:${link.position.column}`));
         });
 
-        totalLinks.success += totalLinksInFile.success;
-        totalLinks.error += totalLinksInFile.error;
-
-        console.log('');
+        totalLinks.success += totalLinksByFile[mdFile.path].success;
+        totalLinks.error += totalLinksByFile[mdFile.path].error;
 
         let chalkColor = chalk.green;
 
-        if (totalLinksInFile.error > 0) {
+        if (totalLinksByFile[mdFile.path].error > 0) {
             chalkColor = chalk.red;
         }
 
-        console.log(chalkColor(`Found ${totalLinksInFile.error + totalLinksInFile.success} links:
-    ${totalLinksInFile.success} valid
-    ${totalLinksInFile.error} invalid`));
-    });
+        if (!quietMode) {
+            console.log(chalkColor(`Found ${totalLinksByFile[mdFile.path].error + totalLinksByFile[mdFile.path].success} links:
+    ${totalLinksByFile[mdFile.path].success} valid
+    ${totalLinksByFile[mdFile.path].error} invalid`));
+        }
 
-    console.log('');
+    });
 
     let chalkColor = chalk.green;
 
@@ -117,6 +129,7 @@ const reportLinks = (mdFiles: IMDFile[], directory: string): void => {
         chalkColor = chalk.red;
     }
 
+    console.log('');
     console.log(chalkColor(`Found a total of ${totalLinks.error + totalLinks.success} links in directory "${directory}":
     ${totalLinks.success} valid
     ${totalLinks.error} invalid`));
@@ -168,11 +181,12 @@ const execute = async (args: string[]) => {
 
         await validateLinks(mdFiles);
 
-        reportLinks(mdFiles, directory);
+        reportLinks(mdFiles, directory, currentOptions.quietMode);
 
         invalidLinks = invalidLinks.concat(getInvalidLinks(mdFiles));
     }
 
+    console.log('');
     console.log(`Time to validate: ${(Date.now() - start) / 1000}s`);
 
     if (invalidLinks.length > 0) {

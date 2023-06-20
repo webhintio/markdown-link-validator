@@ -2,6 +2,7 @@ export type CLIOptions = {
     _: string[];
     debug: boolean;
     flags: string;
+    quietMode: boolean;
     help: boolean;
     ignorePatterns: string[];
 };

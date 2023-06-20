@@ -39,6 +39,12 @@ export const options = optionator({
             type: 'path::String'
         },
         {
+            alias: 'q',
+            description: 'Show only errors in report',
+            option: 'quietMode',
+            type: 'Boolean'
+        },
+        {
             alias: 'h',
             description: 'Show help',
             option: 'help',
