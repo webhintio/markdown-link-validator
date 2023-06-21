@@ -23,6 +23,7 @@ export interface ILink {
     link: string;
     isValid: boolean;
     position: Position;
+    statusCode?: number;
 }
 
 export interface IMDFile {

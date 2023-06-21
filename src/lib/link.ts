@@ -2,6 +2,7 @@ import { ILink, Position } from './types.js';
 
 export class Link implements ILink {
     private _isValid: boolean;
+    private _statusCode: number;
     private _link: string;
     private _position: Position;
 
@@ -45,7 +46,15 @@ export class Link implements ILink {
         return this._isValid;
     }
 
+    public get statusCode() {
+        return this._statusCode;
+    }
+
     public set isValid(value: boolean) {
         this._isValid = value;
+    }
+
+    public set statusCode(value: number) {
+        this._statusCode = value;
     }
 }

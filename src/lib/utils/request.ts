@@ -9,7 +9,12 @@ const __filename = fileURLToPath(import.meta.url);
 
 const debug: debug.IDebugger = d(__filename);
 
-const cache: Map<string, boolean> = new Map();
+type CacheValue = {
+    isOk: boolean;
+    statusCode?: number;
+};
+
+const cache: Map<string, CacheValue> = new Map();
 
 const defaultOptions: https.RequestOptions = {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36' },
@@ -25,7 +30,7 @@ const getHttpOptions = (url: URL, method: string): https.RequestOptions => {
     }, defaultOptions);
 };
 
-const getUrl = (url: string, method: string): Promise<boolean> => {
+const getUrl = (url: string, method: string): Promise<CacheValue> => {
     return new Promise((resolve) => {
         debug(`Checking ${url} ...`);
         let redirects = 10;
@@ -55,12 +60,12 @@ const getUrl = (url: string, method: string): Promise<boolean> => {
                             return get(res.headers.location, urlObject.href);
                         }
 
-                        return resolve(false);
+                        return resolve({ isOk: false, statusCode: res.statusCode});
                     }
 
                     debug(`${url} OK`);
 
-                    return resolve(true);
+                    return resolve({ isOk: true, statusCode: res.statusCode});
                 });
             };
 
@@ -75,7 +80,7 @@ const getUrl = (url: string, method: string): Promise<boolean> => {
             req.on('error', (e) => {
                 debug(`problem with request: ${e.message} - ${url}`);
 
-                return resolve(false);
+                return resolve({ isOk: false, statusCode: 400 });
             });
 
             req.end();
@@ -85,19 +90,19 @@ const getUrl = (url: string, method: string): Promise<boolean> => {
     });
 };
 
-const get = async (url: string): Promise<boolean> => {
+const get = async (url: string): Promise<CacheValue> => {
     if (cache.has(url)) {
         debug(`Getting value from cache for url: ${url}`);
 
         return cache.get(url);
     }
 
-    let isOk = await getUrl(url, 'head');
+    let response = await getUrl(url, 'head');
     let retries = 3;
 
     // Sometimes, head doesn't work, so we need to double check using the 'get' method.
-    if (!isOk) {
-        while (!isOk && retries > 0) {
+    if (!response.isOk) {
+        while (!response.isOk && retries > 0) {
             // Check if the value is now in the cache.
             if (cache.has(url)) {
                 debug(`Getting value from cache for url: ${url}`);
@@ -105,9 +110,9 @@ const get = async (url: string): Promise<boolean> => {
                 return cache.get(url);
             }
 
-            isOk = await getUrl(url, 'get');
+            response = await getUrl(url, 'get');
 
-            if (!isOk) {
+            if (!response.isOk) {
                 await delay(500);
             }
 
@@ -115,9 +120,9 @@ const get = async (url: string): Promise<boolean> => {
         }
     }
 
-    cache.set(url, isOk);
+    cache.set(url, response);
 
-    return isOk;
+    return response;
 };
 
 export default { get };

@@ -90,7 +90,11 @@ const reportLinks = (mdFiles: IMDFile[], directory: string, quietMode?: boolean)
                 totalLinksByFile[mdFile.path].success++;
 
                 if (!quietMode) {
-                    console.log(chalk.green(`✔ ${link.link}`));
+                    if (link.statusCode) {
+                        console.log(chalk.green(`✔ [${link.statusCode}] ${link.link}`));
+                    } else {
+                        console.log(chalk.green(`✔ ${link.link}`));
+                    }
                 }
 
                 return;
@@ -103,7 +107,11 @@ const reportLinks = (mdFiles: IMDFile[], directory: string, quietMode?: boolean)
                 console.log(chalk.cyan(mdFile.path));
             }
 
-            console.log(chalk.red(`✖ ${link.link}:${link.position.line}:${link.position.column}`));
+            if (link.statusCode) {
+                console.log(chalk.red(`✖ [${link.statusCode}] ${link.link}:${link.position.line}:${link.position.column}`));
+            } else {
+                console.log(chalk.red(`✖ ${link.link}:${link.position.line}:${link.position.column}`));
+            }
         });
 
         totalLinks.success += totalLinksByFile[mdFile.path].success;

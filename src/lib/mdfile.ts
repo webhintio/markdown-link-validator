@@ -206,8 +206,9 @@ export class MDFile implements IMDFile {
             }
 
             const promise: Promise<void> = request.get(link.link)
-                .then((linkExists): void => {
-                    link.isValid = linkExists;
+                .then((linkStatus): void => {
+                    link.isValid = linkStatus.isOk;
+                    link.statusCode = linkStatus.statusCode;
                 });
 
             promises.push(promise);
