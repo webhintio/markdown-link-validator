@@ -2,9 +2,11 @@
 
 This is a valid [relative link](./absolute-links.md).
 
-This is a valid [root link](/fixtures/mdfile/absolute-links.md).
+This is a valid [relative link](./absolute-links) without extension.
 
-This is an invalid [relative link](../mdfile) because it needs to finish with `.md`.
+This is a valid [relative link](./folder-link) to a folder with an `index.md` file.
+
+This is a valid [root link](/fixtures/mdfile/absolute-links.md).
 
 This is a valid relative link with a valid [hash](./valid-internal.md#elementelement-type).
 

@@ -39,6 +39,12 @@ export const options = optionator({
             type: 'path::String'
         },
         {
+            alias: 'e',
+            description: 'File extension (.md) is optional for relative links, that can be also folders with an index.md file inside',
+            option: 'optionalMdExtension',
+            type: 'Boolean'
+        },
+        {
             alias: 'q',
             description: 'Show only errors in report',
             option: 'quietMode',

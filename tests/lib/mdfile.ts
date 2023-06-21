@@ -77,19 +77,19 @@ const absolutePositions = {
 };
 
 const relativeLinks = {
-    '../mdfile': {
-        column: 36,
-        line: 7,
-        valid: false
-    },
     '../mdfile/valid-internal.md#canevaluatescript': {
         column: 19,
-        line: 28,
+        line: 30,
         valid: false
     },
     '../mdfile/valid-internal.md#elementelement-type': {
         column: 19,
-        line: 27,
+        line: 29,
+        valid: true
+    },
+    './absolute-links': {
+        column: 33,
+        line: 5,
         valid: true
     },
     './absolute-links.md': {
@@ -97,39 +97,44 @@ const relativeLinks = {
         line: 3,
         valid: true
     },
+    './folder-link': {
+        column: 33,
+        line: 7,
+        valid: true
+    },
     './invalid-internal.md': {
         column: 18,
-        line: 25,
+        line: 27,
         valid: true
     },
     './invalid.md': {
         column: 19,
-        line: 26,
+        line: 28,
         valid: false
     },
     './valid-internal.md#canevaluatescript': {
         column: 54,
-        line: 11,
+        line: 13,
         valid: false
     },
     './valid-internal.md#elementelement-type': {
         column: 51,
-        line: 9,
+        line: 11,
         valid: true
     },
     '/fixtures/mdfile/absolute-links.md': {
         column: 29,
-        line: 5,
+        line: 9,
         valid: true
     },
     '/fixtures/mdfile/valid-internal.md': {
         column: 15,
-        line: 29,
+        line: 31,
         valid: true
     },
     '/invalid-root.md': {
         column: 15,
-        line: 30,
+        line: 32,
         valid: false
     }
 };
@@ -229,7 +234,7 @@ test('Relative links positions are calculated correctly', (t) => {
 });
 
 test('Relative links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], true, true);
 
     await mdfile.validateLinks();
 

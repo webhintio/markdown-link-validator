@@ -20,6 +20,7 @@ export class MDFile implements IMDFile {
     private _cache: Set<string>;
     private _content: string;
     private _ignorePatterns: RegExp[];
+    private _optionalMdExtension: boolean;
     private _internalLinks: Set<ILink>;
     private _invalidLinks: Set<ILink>;
     /**
@@ -60,7 +61,7 @@ export class MDFile implements IMDFile {
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
 
-    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[]) {
+    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], optionalMdExtension: boolean = false) {
         this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
@@ -71,6 +72,7 @@ export class MDFile implements IMDFile {
         this._titles = new Set();
         this._normalizedTitles = new Set();
         this._ignorePatterns = ignorePatterns;
+        this._optionalMdExtension = optionalMdExtension;
 
         this._content = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
 
@@ -187,10 +189,23 @@ export class MDFile implements IMDFile {
         }
 
         const fullPath = link.link.startsWith('/') ? path.join(this._directory, link.link) : path.join(path.dirname(this._path), link.link);
-        const [filePath, hash] = fullPath.split('#');
+        const [originalFilePath, hash] = fullPath.split('#');
+
+        const originalFilePathIsDirectory = fs.existsSync(originalFilePath) && fs.statSync(originalFilePath).isDirectory(); // eslint-disable-line no-sync
+
+        // Relative links should point to a md file, but extension is optional
+        let filePath = originalFilePath;
+
+        if (originalFilePathIsDirectory) {
+            // If relative link points to a folder, search for a `index.md` file inside that folder.
+            filePath = this._optionalMdExtension ? path.join(originalFilePath, 'index.md') : originalFilePath;
+        } else {
+            // Else append a `.md` extensions if missing
+            filePath = this._optionalMdExtension && !path.extname(originalFilePath) ? `${originalFilePath}.md` : originalFilePath;
+        }
 
         // Relative links should point to a md file.
-        if (!filePath.endsWith('.md')) {
+        if (path.extname(filePath) !== '.md') {
             link.isValid = false;
 
             return;
