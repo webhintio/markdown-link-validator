@@ -4,6 +4,10 @@ This is a valid [relative link](./absolute-links.md).
 
 This is a valid [relative link](./absolute-links) without extension.
 
+This is a valid [relative link](../assets/not-md.txt) to a file without `.md` extension.
+
+![This is an image](../assets/pixel.png)
+
 This is a valid [relative link](./folder-link) to a folder with an `index.md` file.
 
 This is a valid [root link](/fixtures/mdfile/absolute-links.md).

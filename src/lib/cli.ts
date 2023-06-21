@@ -24,11 +24,11 @@ import { options } from './cli/options.js';
 import { CLIOptions, IMDFile, ILink } from './types.js';
 import { MDFile } from './mdfile.js';
 
-const getMDFiles = async (directory, ignorePatterns: RegExp[], optionalMdExtension?: boolean): Promise<IMDFile[]> => {
+const getMDFiles = async (directory, ignorePatterns: RegExp[], optionalMdExtension?: boolean, allowOtherExtensions?: boolean): Promise<IMDFile[]> => {
     const filesPath = await globby(['**/*.md', '!node_modules', '!**/node_modules'], { cwd: directory });
 
     return filesPath.map((relativePath) => {
-        const file = new MDFile(directory, relativePath, ignorePatterns, optionalMdExtension);
+        const file = new MDFile(directory, relativePath, ignorePatterns, optionalMdExtension, allowOtherExtensions);
 
         return file;
     });
@@ -177,7 +177,7 @@ const execute = async (args: string[]) => {
 
     for (const directory of directories) {
         /* Get all md files */
-        const mdFiles = await getMDFiles(directory, ignorePatterns, currentOptions.optionalMdExtension);
+        const mdFiles = await getMDFiles(directory, ignorePatterns, currentOptions.optionalMdExtension, currentOptions.allowOtherExtensions);
 
         await validateLinks(mdFiles);
 

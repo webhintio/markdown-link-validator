@@ -45,6 +45,12 @@ export const options = optionator({
             type: 'Boolean'
         },
         {
+            alias: 'o',
+            description: 'Relative links are valid also with extensions other than .md, including images',
+            option: 'allowOtherExtensions',
+            type: 'Boolean'
+        },
+        {
             alias: 'q',
             description: 'Show only errors in report',
             option: 'quietMode',

@@ -21,6 +21,7 @@ export class MDFile implements IMDFile {
     private _content: string;
     private _ignorePatterns: RegExp[];
     private _optionalMdExtension: boolean;
+    private _allowOtherExtensions: boolean;
     private _internalLinks: Set<ILink>;
     private _invalidLinks: Set<ILink>;
     /**
@@ -56,12 +57,13 @@ export class MDFile implements IMDFile {
      * * [link](./somewhere/)
      * * [link](../somewhere/)
      */
-    private _relativeRegex: RegExp = /]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)/g;
+    private _relativeRegex: RegExp = /(?<!!.*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)/g;
+    private _relativeRegexWithImages: RegExp = /]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)/g;
     private _titles: Set<string>;
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
 
-    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], optionalMdExtension: boolean = false) {
+    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], optionalMdExtension: boolean = false, allowOtherExtensions: boolean = false) {
         this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
@@ -73,6 +75,7 @@ export class MDFile implements IMDFile {
         this._normalizedTitles = new Set();
         this._ignorePatterns = ignorePatterns;
         this._optionalMdExtension = optionalMdExtension;
+        this._allowOtherExtensions = allowOtherExtensions;
 
         this._content = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
 
@@ -85,7 +88,7 @@ export class MDFile implements IMDFile {
     private getRelativeLinks() {
         let val: RegExpExecArray;
 
-        while ((val = this._relativeRegex.exec(this._content)) !== null) {
+        while ((val = this._allowOtherExtensions ? this._relativeRegexWithImages.exec(this._content) : this._relativeRegex.exec(this._content)) !== null) {
             const url: string = val[3] || val[1];
 
             if (this._cache.has(url)) {
@@ -205,7 +208,7 @@ export class MDFile implements IMDFile {
         }
 
         // Relative links should point to a md file.
-        if (path.extname(filePath) !== '.md') {
+        if (!this._allowOtherExtensions && path.extname(filePath) !== '.md') {
             link.isValid = false;
 
             return;
@@ -215,6 +218,12 @@ export class MDFile implements IMDFile {
 
         if (!exists) {
             link.isValid = false;
+
+            return;
+        }
+
+        if (exists && this._allowOtherExtensions && path.extname(filePath) !== '.md') {
+            link.isValid = true;
 
             return;
         }

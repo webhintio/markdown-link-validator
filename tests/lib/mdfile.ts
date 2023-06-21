@@ -77,14 +77,24 @@ const absolutePositions = {
 };
 
 const relativeLinks = {
+    '../assets/not-md.txt': {
+        column: 33,
+        line: 7,
+        valid: true
+    },
+    '../assets/pixel.png': {
+        column: 21,
+        line: 9,
+        valid: true
+    },
     '../mdfile/valid-internal.md#canevaluatescript': {
         column: 19,
-        line: 30,
+        line: 34,
         valid: false
     },
     '../mdfile/valid-internal.md#elementelement-type': {
         column: 19,
-        line: 29,
+        line: 33,
         valid: true
     },
     './absolute-links': {
@@ -99,54 +109,54 @@ const relativeLinks = {
     },
     './folder-link': {
         column: 33,
-        line: 7,
+        line: 11,
         valid: true
     },
     './invalid-internal.md': {
         column: 18,
-        line: 27,
+        line: 31,
         valid: true
     },
     './invalid.md': {
         column: 19,
-        line: 28,
+        line: 32,
         valid: false
     },
     './valid-internal.md#canevaluatescript': {
         column: 54,
-        line: 13,
+        line: 17,
         valid: false
     },
     './valid-internal.md#elementelement-type': {
         column: 51,
-        line: 11,
+        line: 15,
         valid: true
     },
     '/fixtures/mdfile/absolute-links.md': {
         column: 29,
-        line: 9,
+        line: 13,
         valid: true
     },
     '/fixtures/mdfile/valid-internal.md': {
         column: 15,
-        line: 31,
+        line: 35,
         valid: true
     },
     '/invalid-root.md': {
         column: 15,
-        line: 32,
+        line: 36,
         valid: false
     }
 };
 
 test('Create a new MDFile has to found all the links in the markdown file', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], false, true);
 
     t.is(mdfile.internalLinks.size, 2);
     // There is more than 5 absolute links, but 5 are uniques.
     t.is(mdfile.absoluteLinks.size, 5);
     // There is more than 7 relative links, but 7 are uniques.
-    t.is(mdfile.relativeLinks.size, 7);
+    t.is(mdfile.relativeLinks.size, 8);
     t.is(mdfile.titles.size, 3);
 });
 

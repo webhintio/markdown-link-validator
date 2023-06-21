@@ -27,7 +27,8 @@ markdown-link-validator ./path/to/mds [options]
 Basic configuration:
   -i, --ignorePatterns path::[String]  Regex to ignore links - default: []
   -f, --flags path::String             Flags applied to the ignore pattern
-  -e, --optionalMdExtension Boolean    File extension (.md) is optional for relative links, that can be also folders with an index.md file inside
+  -e, --optionalMdExtension Boolean    File extension (.md) is optional for relative links, that can be also folders with an index.md file inside#
+  -o, --allowOtherExtensions Boolean   Relative links are valid also with extensions other than .md, including images
   -q, --quietMode Boolean              Show only errors in report
   -h, --help                           Show help
 

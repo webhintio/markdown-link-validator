@@ -3,6 +3,7 @@ export type CLIOptions = {
     debug: boolean;
     flags: string;
     optionalMdExtension: boolean;
+    allowOtherExtensions: boolean;
     quietMode: boolean;
     help: boolean;
     ignorePatterns: string[];

@@ -37,6 +37,8 @@ This is a relative [link](../docs/doc3.md)
 
 This is a relative link with [hash](../docs/doc4.md#title)
 
+![This is an image](../assets/pixel.png)
+
 This is a relative link using [link label][relative link]
 
 This is a relative link with hash using [link label][relative link2]
