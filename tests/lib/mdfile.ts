@@ -62,9 +62,13 @@ const internalPositions = {
 };
 
 const absolutePositions = {
+    'https://browsersl.ist/': {
+        column: 61,
+        line: 35
+    },
     'https://github.com/ai/browserslist#queries': {
         column: 26,
-        line: 37
+        line: 39
     },
     'https://github.com/ai/browserslist#readme': {
         column: 32,
@@ -72,7 +76,7 @@ const absolutePositions = {
     },
     'https://webhint.io/docs/hints/hint-highest-available-document-mode/': {
         column: 14,
-        line: 38
+        line: 40
     }
 };
 

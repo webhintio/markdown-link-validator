@@ -17,13 +17,19 @@ export class MDFile implements IMDFile {
      * * ```
      */
     private _codeBlockRegex: RegExp = /`{3}.*?`{3}/gs;
+    private _urlRegex: RegExp = /https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%,*_+.~#?&//=]*)/;
     /**
      * This regex should match the following example:
      * * [link](https://example.com)
      * * [link label]: https://exxample.com
      * * <img src="http://example.com/avatar.jpg">
      */
-    private _absoluteRegex: RegExp = /(]\(|]:\s*)(https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%,*_+.~#?&//=]*))/g;
+    private _absoluteRegex: RegExp = new RegExp(`(]\\(|]:\\s*)(${this._urlRegex.source})`, 'g');
+    /**
+     * This regex should match the following example:
+     * * http://example.com/avatar.jpg
+     */
+    private _standaloneRegex: RegExp = new RegExp(`(?<!(]\\(|]:\\s*))${this._urlRegex.source}`, 'g');
     private _cache: Set<string>;
     private _originalContent: string;
     private _content: string;
@@ -145,6 +151,17 @@ export class MDFile implements IMDFile {
 
             this._cache.add(url);
             this._absoluteLinks.add(new Link(url, val.index + shift, this._content));
+        }
+
+        while ((val = this._standaloneRegex.exec(this._content)) !== null) {
+            const url: string = val[0].replace(/\.$/, '');
+
+            if (this._cache.has(url)) {
+                continue;
+            }
+
+            this._cache.add(url);
+            this._absoluteLinks.add(new Link(url, val.index, this._content));
         }
     }
 

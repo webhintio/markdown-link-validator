@@ -32,6 +32,8 @@ browserslist.defaults = [
 ];
 ```
 
+Please check the official website for further informations: https://browsersl.ist/.
+
 <!-- Link labels: -->
 
 [browserslist defaults]: https://github.com/ai/browserslist#queries
