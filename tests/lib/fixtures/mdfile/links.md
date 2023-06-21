@@ -39,6 +39,12 @@ This is a relative link with [hash](../docs/doc4.md#title)
 
 ![This is an image](../assets/pixel.png)
 
+This is `a [link](../docs/doc5.md) in an inline` code block.
+
+```markdown
+This is a [link](../docs/doc6.md) in an code block.
+```
+
 This is a relative link using [link label][relative link]
 
 This is a relative link with hash using [link label][relative link2]

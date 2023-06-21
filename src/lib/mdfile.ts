@@ -12,12 +12,20 @@ export class MDFile implements IMDFile {
     private _absoluteLinks: Set<ILink>;
     /**
      * This regex should match the following example:
+     * * ```markdown
+     * * [link label]: https://exxample.com
+     * * ```
+     */
+    private _codeBlockRegex: RegExp = /`{3}.*?`{3}/gs;
+    /**
+     * This regex should match the following example:
      * * [link](https://example.com)
      * * [link label]: https://exxample.com
      * * <img src="http://example.com/avatar.jpg">
      */
     private _absoluteRegex: RegExp = /(]\(|]:\s*)(https?:\/\/[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%,*_+.~#?&//=]*))/g;
     private _cache: Set<string>;
+    private _originalContent: string;
     private _content: string;
     private _ignorePatterns: RegExp[];
     private _optionalMdExtension: boolean;
@@ -57,8 +65,8 @@ export class MDFile implements IMDFile {
      * * [link](./somewhere/)
      * * [link](../somewhere/)
      */
-    private _relativeRegex: RegExp = /(?<!!.*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)/g;
-    private _relativeRegexWithImages: RegExp = /]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)/g;
+    private _relativeRegex: RegExp = /(?<![!`].*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)(?!.*?`)/g;
+    private _relativeRegexWithImages: RegExp = /(?<!`.*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)(?!.*?`)/g;
     private _titles: Set<string>;
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
@@ -77,12 +85,19 @@ export class MDFile implements IMDFile {
         this._optionalMdExtension = optionalMdExtension;
         this._allowOtherExtensions = allowOtherExtensions;
 
-        this._content = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
+        this._originalContent = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
 
+        this.stripCodeBlocks();
         this.getRelativeLinks();
         this.getAbsoluteLinks();
         this.getInternalLinks();
         this.getTitles();
+    }
+
+    private stripCodeBlocks() {
+        this._content = this._originalContent.replaceAll(this._codeBlockRegex, (match) => {
+            return '\n'.repeat(match.split('\n').length - 1);
+        });
     }
 
     private getRelativeLinks() {
