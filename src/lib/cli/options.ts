@@ -32,9 +32,15 @@ export const options = optionator({
             type: 'path::[String]'
         },
         {
+            default: '',
+            description: 'File containing regex to ignore links (see --ignorePatterns option), one per line',
+            option: 'ignorePatternsFrom',
+            type: 'String'
+        },
+        {
             alias: 'f',
-            dependsOn: 'ignorePatterns',
-            description: 'Flags applied to the ignore pattern',
+            dependsOn: ['or', 'ignorePatterns', 'ignorePatternsFrom'],
+            description: 'Flags applied to the ignore patterns',
             option: 'flags',
             type: 'path::String'
         },

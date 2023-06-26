@@ -8,6 +8,9 @@
  */
 import path from 'path';
 import { fileURLToPath } from 'url';
+import events from 'events';
+import fs from 'fs';
+import readline from 'readline';
 import { debug as d } from './utils/debug.js';
 import { globby } from 'globby';
 import chalk from 'chalk';
@@ -131,6 +134,24 @@ const execute = async (args) => {
     const ignorePatterns = currentOptions.ignorePatterns.map((pattern) => {
         return new RegExp(pattern, currentOptions.flags);
     });
+    if (currentOptions.ignorePatternsFrom) {
+        try {
+            const rl = readline.createInterface({
+                crlfDelay: Infinity,
+                input: fs.createReadStream(currentOptions.ignorePatternsFrom)
+            });
+            rl.on('line', (pattern) => {
+                if (pattern) {
+                    ignorePatterns.push(new RegExp(pattern, currentOptions.flags));
+                }
+            });
+            await events.once(rl, 'close');
+        }
+        catch (err) {
+            console.error(err);
+            return 1;
+        }
+    }
     /* Get the directories full path */
     const directories = currentOptions._.map((dir) => {
         return path.resolve(process.cwd(), dir);

@@ -7,6 +7,7 @@ export type CLIOptions = {
     quietMode: boolean;
     help: boolean;
     ignorePatterns: string[];
+    ignorePatternsFrom: string;
 };
 export type Issue = {
     message: string;
