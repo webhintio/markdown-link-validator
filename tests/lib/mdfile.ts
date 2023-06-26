@@ -154,7 +154,7 @@ const relativeLinks = {
 };
 
 test('Create a new MDFile has to found all the links in the markdown file', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], false, true);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], [200], false, true);
 
     t.is(mdfile.internalLinks.size, 2);
     // There is more than 5 absolute links, but 5 are uniques.
@@ -165,7 +165,7 @@ test('Create a new MDFile has to found all the links in the markdown file', (t) 
 });
 
 test('Internal links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', [], [200]);
 
     await mdfile.validateLinks();
 
@@ -175,7 +175,7 @@ test('Internal links are validated correctly', async (t) => {
 });
 
 test('Internal links positions are calculated correctly', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', [], [200]);
 
     mdfile.internalLinks.forEach((link) => {
         const expectedPosition = internalPositions[link.link];
@@ -186,7 +186,7 @@ test('Internal links positions are calculated correctly', (t) => {
 });
 
 test('Invalid internal links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/invalid-internal.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/invalid-internal.md', [], [200]);
 
     await mdfile.validateLinks();
 
@@ -202,7 +202,7 @@ test('Invalid internal links are validated correctly', async (t) => {
 });
 
 test('Absolute links positions are calculated correctly', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', [], [200]);
 
     mdfile.absoluteLinks.forEach((link) => {
         const expectedPosition = absolutePositions[link.link];
@@ -219,7 +219,7 @@ test('Absolute links are validated correctly', async (t) => {
         .resolves(false);
     stub.resolves(true);
 
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', [], [200]);
 
     await mdfile.validateLinks();
 
@@ -237,7 +237,7 @@ test('Absolute links are validated correctly', async (t) => {
 });
 
 test('Relative links positions are calculated correctly', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], [200]);
 
     mdfile.relativeLinks.forEach((link) => {
         const expectedPosition = relativeLinks[link.link];
@@ -248,7 +248,7 @@ test('Relative links positions are calculated correctly', (t) => {
 });
 
 test('Relative links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], true, true);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], [200], true, true);
 
     await mdfile.validateLinks();
 

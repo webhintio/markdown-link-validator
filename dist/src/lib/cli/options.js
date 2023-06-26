@@ -43,6 +43,14 @@ export const options = optionator({
             type: 'path::String'
         },
         {
+            alias: 'c',
+            concatRepeatedArrays: [true, { oneValuePerFlag: true }],
+            default: '[200]',
+            description: 'HTTP status code to ignore links',
+            option: 'ignoreStatusCodes',
+            type: '[Number]'
+        },
+        {
             alias: 'e',
             description: 'File extension (.md) is optional for relative links, that can be also folders with an index.md file inside',
             option: 'optionalMdExtension',

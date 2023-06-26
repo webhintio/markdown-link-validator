@@ -18,7 +18,7 @@ const getHttpOptions = (url, method) => {
         protocol: url.protocol
     }, defaultOptions);
 };
-const getUrl = (url, method) => {
+const getUrl = (url, method, ignoreStatusCodes = [200]) => {
     return new Promise((resolve) => {
         debug(`Checking ${url} ...`);
         let redirects = 10;
@@ -35,7 +35,7 @@ const getUrl = (url, method) => {
                 res.setEncoding('utf8');
                 res.on('data', () => { });
                 res.on('end', () => {
-                    if (res.statusCode !== 200) {
+                    if (!ignoreStatusCodes.includes(res.statusCode)) {
                         debug(`Status code for ${url}: ${res.statusCode}`);
                         // If there is a redirect, check if the destination of the redirect exists.
                         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects > 0) {
@@ -64,12 +64,12 @@ const getUrl = (url, method) => {
         get(url);
     });
 };
-const get = async (url) => {
+const get = async (url, ignoreStatusCodes) => {
     if (cache.has(url)) {
         debug(`Getting value from cache for url: ${url}`);
         return cache.get(url);
     }
-    let response = await getUrl(url, 'head');
+    let response = await getUrl(url, 'head', ignoreStatusCodes);
     let retries = 3;
     // Sometimes, head doesn't work, so we need to double check using the 'get' method.
     if (!response.isOk) {
@@ -79,7 +79,7 @@ const get = async (url) => {
                 debug(`Getting value from cache for url: ${url}`);
                 return cache.get(url);
             }
-            response = await getUrl(url, 'get');
+            response = await getUrl(url, 'get', ignoreStatusCodes);
             if (!response.isOk) {
                 await delay(500);
             }

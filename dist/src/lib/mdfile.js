@@ -29,6 +29,7 @@ export class MDFile {
     _originalContent;
     _content;
     _ignorePatterns;
+    _ignoreStatusCodes;
     _optionalMdExtension;
     _allowOtherExtensions;
     _internalLinks;
@@ -71,7 +72,7 @@ export class MDFile {
     _titles;
     _titleRegex = /^#{1,6}\s+(.*)$/gm;
     _normalizedTitles;
-    constructor(directory, relativePath, ignorePatterns, optionalMdExtension = false, allowOtherExtensions = false) {
+    constructor(directory, relativePath, ignorePatterns, ignoreStatusCodes, optionalMdExtension = false, allowOtherExtensions = false) {
         this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
@@ -82,6 +83,7 @@ export class MDFile {
         this._titles = new Set();
         this._normalizedTitles = new Set();
         this._ignorePatterns = ignorePatterns;
+        this._ignoreStatusCodes = ignoreStatusCodes;
         this._optionalMdExtension = optionalMdExtension;
         this._allowOtherExtensions = allowOtherExtensions;
         this._originalContent = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
@@ -171,7 +173,7 @@ export class MDFile {
                 link.isValid = true;
                 continue;
             }
-            const promise = request.get(link.link)
+            const promise = request.get(link.link, this._ignoreStatusCodes)
                 .then((linkStatus) => {
                 link.isValid = linkStatus.isOk;
                 link.statusCode = linkStatus.statusCode;

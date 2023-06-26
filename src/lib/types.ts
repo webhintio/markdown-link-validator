@@ -8,6 +8,7 @@ export type CLIOptions = {
     help: boolean;
     ignorePatterns: string[];
     ignorePatternsFrom: string;
+    ignoreStatusCodes: number[];
 };
 
 export type Issue = {

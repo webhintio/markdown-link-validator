@@ -28,6 +28,7 @@ Basic configuration:
   -i, --ignorePatterns path::[String]  Regex to ignore links - default: []
   --ignorePatternsFromFile String      File containing regex to ignore links (see --ignorePatterns option), one per line
   -f, --flags path::String             Flags applied to the ignore patterns
+  -c, --ignoreStatusCodes [Number]     HTTP status code to ignore links - default: [200]
   -e, --optionalMdExtension Boolean    File extension (.md) is optional for relative links, that can be also folders with an index.md file inside#
   -o, --allowOtherExtensions Boolean   Relative links are valid also with extensions other than .md, including images
   -q, --quietMode Boolean              Show only errors in report

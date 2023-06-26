@@ -3,6 +3,6 @@ type CacheValue = {
     statusCode?: number;
 };
 declare const _default: {
-    get: (url: string) => Promise<CacheValue>;
+    get: (url: string, ignoreStatusCodes?: number[]) => Promise<CacheValue>;
 };
 export default _default;

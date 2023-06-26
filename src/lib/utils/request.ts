@@ -30,7 +30,7 @@ const getHttpOptions = (url: URL, method: string): https.RequestOptions => {
     }, defaultOptions);
 };
 
-const getUrl = (url: string, method: string): Promise<CacheValue> => {
+const getUrl = (url: string, method: string, ignoreStatusCodes: number[] = [200]): Promise<CacheValue> => {
     return new Promise((resolve) => {
         debug(`Checking ${url} ...`);
         let redirects = 10;
@@ -50,7 +50,7 @@ const getUrl = (url: string, method: string): Promise<CacheValue> => {
                 res.setEncoding('utf8');
                 res.on('data', () => { });
                 res.on('end', () => {
-                    if (res.statusCode !== 200) {
+                    if (!ignoreStatusCodes.includes(res.statusCode)) {
                         debug(`Status code for ${url}: ${res.statusCode}`);
 
                         // If there is a redirect, check if the destination of the redirect exists.
@@ -90,14 +90,14 @@ const getUrl = (url: string, method: string): Promise<CacheValue> => {
     });
 };
 
-const get = async (url: string): Promise<CacheValue> => {
+const get = async (url: string, ignoreStatusCodes?: number[]): Promise<CacheValue> => {
     if (cache.has(url)) {
         debug(`Getting value from cache for url: ${url}`);
 
         return cache.get(url);
     }
 
-    let response = await getUrl(url, 'head');
+    let response = await getUrl(url, 'head', ignoreStatusCodes);
     let retries = 3;
 
     // Sometimes, head doesn't work, so we need to double check using the 'get' method.
@@ -110,7 +110,7 @@ const get = async (url: string): Promise<CacheValue> => {
                 return cache.get(url);
             }
 
-            response = await getUrl(url, 'get');
+            response = await getUrl(url, 'get', ignoreStatusCodes);
 
             if (!response.isOk) {
                 await delay(500);

@@ -34,6 +34,7 @@ export class MDFile implements IMDFile {
     private _originalContent: string;
     private _content: string;
     private _ignorePatterns: RegExp[];
+    private _ignoreStatusCodes: number[];
     private _optionalMdExtension: boolean;
     private _allowOtherExtensions: boolean;
     private _internalLinks: Set<ILink>;
@@ -77,7 +78,7 @@ export class MDFile implements IMDFile {
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
 
-    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], optionalMdExtension: boolean = false, allowOtherExtensions: boolean = false) {
+    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], ignoreStatusCodes: number[], optionalMdExtension: boolean = false, allowOtherExtensions: boolean = false) {
         this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
@@ -88,6 +89,7 @@ export class MDFile implements IMDFile {
         this._titles = new Set();
         this._normalizedTitles = new Set();
         this._ignorePatterns = ignorePatterns;
+        this._ignoreStatusCodes = ignoreStatusCodes;
         this._optionalMdExtension = optionalMdExtension;
         this._allowOtherExtensions = allowOtherExtensions;
 
@@ -205,7 +207,7 @@ export class MDFile implements IMDFile {
                 continue;
             }
 
-            const promise: Promise<void> = request.get(link.link)
+            const promise: Promise<void> = request.get(link.link, this._ignoreStatusCodes)
                 .then((linkStatus): void => {
                     link.isValid = linkStatus.isOk;
                     link.statusCode = linkStatus.statusCode;

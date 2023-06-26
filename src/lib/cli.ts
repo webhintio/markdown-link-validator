@@ -27,11 +27,11 @@ import { options } from './cli/options.js';
 import { CLIOptions, IMDFile, ILink } from './types.js';
 import { MDFile } from './mdfile.js';
 
-const getMDFiles = async (directory, ignorePatterns: RegExp[], optionalMdExtension?: boolean, allowOtherExtensions?: boolean): Promise<IMDFile[]> => {
+const getMDFiles = async (directory, ignorePatterns: RegExp[], ignoreStatusCodes: number[], optionalMdExtension?: boolean, allowOtherExtensions?: boolean): Promise<IMDFile[]> => {
     const filesPath = await globby(['**/*.md', '!node_modules', '!**/node_modules'], { cwd: directory });
 
     return filesPath.map((relativePath) => {
-        const file = new MDFile(directory, relativePath, ignorePatterns, optionalMdExtension, allowOtherExtensions);
+        const file = new MDFile(directory, relativePath, ignorePatterns, ignoreStatusCodes, optionalMdExtension, allowOtherExtensions);
 
         return file;
     });
@@ -197,6 +197,8 @@ const execute = async (args: string[]) => {
         }
     }
 
+    const ignoreStatusCodes = currentOptions.ignoreStatusCodes.includes(200) ? currentOptions.ignoreStatusCodes : [200, ...currentOptions.ignoreStatusCodes];
+
     /* Get the directories full path */
     const directories = currentOptions._.map((dir) => {
         return path.resolve(process.cwd(), dir);
@@ -210,7 +212,7 @@ const execute = async (args: string[]) => {
 
     for (const directory of directories) {
         /* Get all md files */
-        const mdFiles = await getMDFiles(directory, ignorePatterns, currentOptions.optionalMdExtension, currentOptions.allowOtherExtensions);
+        const mdFiles = await getMDFiles(directory, ignorePatterns, ignoreStatusCodes, currentOptions.optionalMdExtension, currentOptions.allowOtherExtensions);
 
         await validateLinks(mdFiles);
 
