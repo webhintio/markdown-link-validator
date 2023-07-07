@@ -91,6 +91,11 @@ const relativeLinks = {
         line: 9,
         valid: true
     },
+    '../link/empty.md': {
+        column: 15,
+        line: 37,
+        valid: false
+    },
     '../mdfile/valid-internal.md#canevaluatescript': {
         column: 19,
         line: 34,
@@ -248,7 +253,7 @@ test('Relative links positions are calculated correctly', (t) => {
 });
 
 test('Relative links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], [200], true, true);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], [200], true, true, true);
 
     await mdfile.validateLinks();
 

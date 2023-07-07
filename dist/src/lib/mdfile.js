@@ -32,6 +32,7 @@ export class MDFile {
     _ignoreStatusCodes;
     _optionalMdExtension;
     _allowOtherExtensions;
+    _noEmptyFiles;
     _internalLinks;
     _invalidLinks;
     /**
@@ -72,7 +73,7 @@ export class MDFile {
     _titles;
     _titleRegex = /^#{1,6}\s+(.*)$/gm;
     _normalizedTitles;
-    constructor(directory, relativePath, ignorePatterns, ignoreStatusCodes, optionalMdExtension = false, allowOtherExtensions = false) {
+    constructor(directory, relativePath, ignorePatterns, ignoreStatusCodes, optionalMdExtension = false, allowOtherExtensions = false, noEmptyFiles = false) {
         this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
@@ -86,6 +87,7 @@ export class MDFile {
         this._ignoreStatusCodes = ignoreStatusCodes;
         this._optionalMdExtension = optionalMdExtension;
         this._allowOtherExtensions = allowOtherExtensions;
+        this._noEmptyFiles = noEmptyFiles;
         this._originalContent = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
         this.stripCodeBlocks();
         this.getRelativeLinks();
@@ -171,6 +173,7 @@ export class MDFile {
         for (const link of this._absoluteLinks) {
             if (this.ignoreLink(link.link)) {
                 link.isValid = true;
+                link.statusCode = 200;
                 continue;
             }
             const promise = request.get(link.link, this._ignoreStatusCodes)
@@ -185,6 +188,7 @@ export class MDFile {
     validateRelativeLink(link) {
         if (this.ignoreLink(link.link)) {
             link.isValid = true;
+            link.statusCode = 200;
             return;
         }
         const fullPath = link.link.startsWith('/') ? path.join(this._directory, link.link) : path.join(path.dirname(this._path), link.link);
@@ -203,33 +207,39 @@ export class MDFile {
         // Relative links should point to a md file.
         if (!this._allowOtherExtensions && path.extname(filePath) !== '.md') {
             link.isValid = false;
+            link.statusCode = 404;
             return;
         }
         const exists = fs.existsSync(filePath); // eslint-disable-line no-sync
         if (!exists) {
             link.isValid = false;
+            link.statusCode = 404;
             return;
         }
         if (exists && this._allowOtherExtensions && path.extname(filePath) !== '.md') {
             link.isValid = true;
-            return;
-        }
-        if (!hash) {
-            link.isValid = true;
+            link.statusCode = 200;
             return;
         }
         /**
          * 1. Read file content
-         * 2. Get titles
-         * 3. Check if has exists.
+         * 2. Check if file is not empty
+         * 3. Get titles
+         * 4. Check if has exists.
          */
         const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' }); // eslint-disable-line no-sync
         const normalizedTitles = new Set();
         let val;
+        if (!hash) {
+            link.isValid = !(this._noEmptyFiles && !fileContent);
+            link.statusCode = !fileContent ? 204 : 200;
+            return;
+        }
         while ((val = this._titleRegex.exec(fileContent)) !== null) {
             normalizedTitles.add(uslug(val[1]));
         }
         link.isValid = normalizedTitles.has(hash);
+        link.statusCode = link.isValid ? 200 : 404;
     }
     validateRelativeLinks() {
         this._relativeLinks.forEach((link) => {
@@ -239,13 +249,16 @@ export class MDFile {
     validateInternalLink(link) {
         if (this.ignoreLink(link.link)) {
             link.isValid = true;
+            link.statusCode = 200;
             return;
         }
         if (this._normalizedTitles.has(link.link.substr(1))) {
             link.isValid = true;
+            link.statusCode = 200;
             return;
         }
         link.isValid = false;
+        link.statusCode = 404;
     }
     validateInternalLinks() {
         this._internalLinks.forEach((link) => {

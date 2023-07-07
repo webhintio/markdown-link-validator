@@ -28,6 +28,7 @@ export declare class MDFile implements IMDFile {
     private _ignoreStatusCodes;
     private _optionalMdExtension;
     private _allowOtherExtensions;
+    private _noEmptyFiles;
     private _internalLinks;
     private _invalidLinks;
     /**
@@ -68,7 +69,7 @@ export declare class MDFile implements IMDFile {
     private _titles;
     private _titleRegex;
     private _normalizedTitles;
-    constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], ignoreStatusCodes: number[], optionalMdExtension?: boolean, allowOtherExtensions?: boolean);
+    constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], ignoreStatusCodes: number[], optionalMdExtension?: boolean, allowOtherExtensions?: boolean, noEmptyFiles?: boolean);
     private stripCodeBlocks;
     private getRelativeLinks;
     private getAbsoluteLinks;

@@ -4,6 +4,7 @@ export type CLIOptions = {
     flags: string;
     optionalMdExtension: boolean;
     allowOtherExtensions: boolean;
+    noEmptyFiles: boolean;
     quietMode: boolean;
     help: boolean;
     ignorePatterns: string[];

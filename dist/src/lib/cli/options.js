@@ -63,6 +63,11 @@ export const options = optionator({
             type: 'Boolean'
         },
         {
+            description: 'Links to empty files raise errors',
+            option: 'noEmptyFiles',
+            type: 'Boolean'
+        },
+        {
             alias: 'q',
             description: 'Show only errors in report',
             option: 'quietMode',

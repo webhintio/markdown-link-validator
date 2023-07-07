@@ -61,7 +61,7 @@
     "watch:ts": "npm run build:ts -- --watch"
   },
   "repository": "webhintio/markdown-link-validator",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "engineStrict": true,
   "engines": {
     "npm": ">=8",

@@ -37,6 +37,7 @@ export class MDFile implements IMDFile {
     private _ignoreStatusCodes: number[];
     private _optionalMdExtension: boolean;
     private _allowOtherExtensions: boolean;
+    private _noEmptyFiles: boolean;
     private _internalLinks: Set<ILink>;
     private _invalidLinks: Set<ILink>;
     /**
@@ -78,7 +79,7 @@ export class MDFile implements IMDFile {
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
 
-    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], ignoreStatusCodes: number[], optionalMdExtension: boolean = false, allowOtherExtensions: boolean = false) {
+    public constructor(directory: string, relativePath: string, ignorePatterns: RegExp[], ignoreStatusCodes: number[], optionalMdExtension: boolean = false, allowOtherExtensions: boolean = false, noEmptyFiles: boolean = false) {
         this._directory = directory;
         this._relativePath = relativePath;
         this._path = path.join(directory, relativePath);
@@ -92,6 +93,7 @@ export class MDFile implements IMDFile {
         this._ignoreStatusCodes = ignoreStatusCodes;
         this._optionalMdExtension = optionalMdExtension;
         this._allowOtherExtensions = allowOtherExtensions;
+        this._noEmptyFiles = noEmptyFiles;
 
         this._originalContent = fs.readFileSync(this._path, { encoding: 'utf-8' }); // eslint-disable-line no-sync
 
@@ -203,6 +205,7 @@ export class MDFile implements IMDFile {
         for (const link of this._absoluteLinks) {
             if (this.ignoreLink(link.link)) {
                 link.isValid = true;
+                link.statusCode = 200;
 
                 continue;
             }
@@ -222,6 +225,7 @@ export class MDFile implements IMDFile {
     private validateRelativeLink(link: ILink): void {
         if (this.ignoreLink(link.link)) {
             link.isValid = true;
+            link.statusCode = 200;
 
             return;
         }
@@ -245,6 +249,7 @@ export class MDFile implements IMDFile {
         // Relative links should point to a md file.
         if (!this._allowOtherExtensions && path.extname(filePath) !== '.md') {
             link.isValid = false;
+            link.statusCode = 404;
 
             return;
         }
@@ -253,37 +258,42 @@ export class MDFile implements IMDFile {
 
         if (!exists) {
             link.isValid = false;
+            link.statusCode = 404;
 
             return;
         }
 
         if (exists && this._allowOtherExtensions && path.extname(filePath) !== '.md') {
             link.isValid = true;
-
-            return;
-        }
-
-        if (!hash) {
-            link.isValid = true;
+            link.statusCode = 200;
 
             return;
         }
 
         /**
          * 1. Read file content
-         * 2. Get titles
-         * 3. Check if has exists.
+         * 2. Check if file is not empty
+         * 3. Get titles
+         * 4. Check if has exists.
          */
 
         const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' }); // eslint-disable-line no-sync
         const normalizedTitles: Set<string> = new Set();
         let val: RegExpExecArray;
 
+        if (!hash) {
+            link.isValid = !(this._noEmptyFiles && !fileContent);
+            link.statusCode = !fileContent ? 204 : 200;
+
+            return;
+        }
+
         while ((val = this._titleRegex.exec(fileContent)) !== null) {
             normalizedTitles.add(uslug(val[1]));
         }
 
         link.isValid = normalizedTitles.has(hash);
+        link.statusCode = link.isValid ? 200 : 404;
     }
 
     private validateRelativeLinks(): void {
@@ -295,17 +305,20 @@ export class MDFile implements IMDFile {
     private validateInternalLink(link: ILink): void {
         if (this.ignoreLink(link.link)) {
             link.isValid = true;
+            link.statusCode = 200;
 
             return;
         }
 
         if (this._normalizedTitles.has(link.link.substr(1))) {
             link.isValid = true;
+            link.statusCode = 200;
 
             return;
         }
 
         link.isValid = false;
+        link.statusCode = 404;
     }
 
     private validateInternalLinks(): void {

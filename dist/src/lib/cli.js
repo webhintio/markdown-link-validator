@@ -19,10 +19,10 @@ const __filename = fileURLToPath(import.meta.url);
 const debug = d(__filename);
 import { options } from './cli/options.js';
 import { MDFile } from './mdfile.js';
-const getMDFiles = async (directory, ignorePatterns, ignoreStatusCodes, optionalMdExtension, allowOtherExtensions) => {
+const getMDFiles = async (directory, ignorePatterns, ignoreStatusCodes, optionalMdExtension, allowOtherExtensions, noEmptyFiles) => {
     const filesPath = await globby(['**/*.md', '!node_modules', '!**/node_modules'], { cwd: directory });
     return filesPath.map((relativePath) => {
-        const file = new MDFile(directory, relativePath, ignorePatterns, ignoreStatusCodes, optionalMdExtension, allowOtherExtensions);
+        const file = new MDFile(directory, relativePath, ignorePatterns, ignoreStatusCodes, optionalMdExtension, allowOtherExtensions, noEmptyFiles);
         return file;
     });
 };
@@ -69,12 +69,7 @@ const reportLinks = (mdFiles, directory, quietMode) => {
             if (link.isValid) {
                 totalLinksByFile[mdFile.path].success++;
                 if (!quietMode) {
-                    if (link.statusCode) {
-                        console.log(chalk.green(`✔ [${link.statusCode}] ${link.link}`));
-                    }
-                    else {
-                        console.log(chalk.green(`✔ ${link.link}`));
-                    }
+                    console.log(chalk.green(`✔ [${link.statusCode}] ${link.link}`));
                 }
                 return;
             }
@@ -83,12 +78,7 @@ const reportLinks = (mdFiles, directory, quietMode) => {
                 console.log('');
                 console.log(chalk.cyan(mdFile.path));
             }
-            if (link.statusCode) {
-                console.log(chalk.red(`✖ [${link.statusCode}] ${link.link}:${link.position.line}:${link.position.column}`));
-            }
-            else {
-                console.log(chalk.red(`✖ ${link.link}:${link.position.line}:${link.position.column}`));
-            }
+            console.log(chalk.red(`✖ [${link.statusCode}] ${link.link}:${link.position.line}:${link.position.column}`));
         });
         totalLinks.success += totalLinksByFile[mdFile.path].success;
         totalLinks.error += totalLinksByFile[mdFile.path].error;
@@ -152,7 +142,7 @@ const execute = async (args) => {
             return 1;
         }
     }
-    const ignoreStatusCodes = currentOptions.ignoreStatusCodes.includes(200) ? currentOptions.ignoreStatusCodes : [200, ...currentOptions.ignoreStatusCodes];
+    const ignoreStatusCodes = [...(!currentOptions.noEmptyFiles ? [200, 204] : [200]), ...currentOptions.ignoreStatusCodes];
     /* Get the directories full path */
     const directories = currentOptions._.map((dir) => {
         return path.resolve(process.cwd(), dir);
@@ -162,7 +152,7 @@ const execute = async (args) => {
     const start = Date.now();
     for (const directory of directories) {
         /* Get all md files */
-        const mdFiles = await getMDFiles(directory, ignorePatterns, ignoreStatusCodes, currentOptions.optionalMdExtension, currentOptions.allowOtherExtensions);
+        const mdFiles = await getMDFiles(directory, ignorePatterns, ignoreStatusCodes, currentOptions.optionalMdExtension, currentOptions.allowOtherExtensions, currentOptions.noEmptyFiles);
         await validateLinks(mdFiles);
         reportLinks(mdFiles, directory, currentOptions.quietMode);
         invalidLinks = invalidLinks.concat(getInvalidLinks(mdFiles));

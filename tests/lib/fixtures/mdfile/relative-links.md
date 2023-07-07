@@ -34,3 +34,4 @@ This is an invalid root [label link][root link6].
 [relative link4]: ../mdfile/valid-internal.md#canevaluatescript
 [root link5]: /fixtures/mdfile/valid-internal.md
 [root link6]: /invalid-root.md
+[empty link]: ../link/empty.md

@@ -31,6 +31,7 @@ Basic configuration:
   -c, --ignoreStatusCodes [Number]     HTTP status code to ignore links - default: [200]
   -e, --optionalMdExtension Boolean    File extension (.md) is optional for relative links, that can be also folders with an index.md file inside#
   -o, --allowOtherExtensions Boolean   Relative links are valid also with extensions other than .md, including images
+  --noEmptyFiles Boolean               Links to empty files are invalid
   -q, --quietMode Boolean              Show only errors in report
   -h, --help                           Show help
 
