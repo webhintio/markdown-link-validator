@@ -17,7 +17,7 @@ export class Link {
         this.getPosition(index, content);
     }
     getPosition(index, content) {
-        const partialContent = content.substr(0, index);
+        const partialContent = content.substring(0, index);
         const lines = partialContent.split('\n');
         this._position = {
             column: lines[lines.length - 1].length + 1,

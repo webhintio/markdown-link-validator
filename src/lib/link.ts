@@ -25,7 +25,7 @@ export class Link implements ILink {
     }
 
     private getPosition(index: number, content: string) {
-        const partialContent = content.substr(0, index);
+        const partialContent = content.substring(0, index);
         const lines = partialContent.split('\n');
 
         this._position = {

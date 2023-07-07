@@ -252,7 +252,7 @@ export class MDFile {
             link.statusCode = 200;
             return;
         }
-        if (this._normalizedTitles.has(link.link.substr(1))) {
+        if (this._normalizedTitles.has(link.link.substring(1))) {
             link.isValid = true;
             link.statusCode = 200;
             return;
