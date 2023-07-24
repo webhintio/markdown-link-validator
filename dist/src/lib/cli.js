@@ -50,43 +50,57 @@ const getInvalidLinks = (mdFiles) => {
         return [...total, ...mdFile.invalidLinks];
     }, []);
 };
-const reportLinks = (mdFiles, directory, quietMode) => {
+const reportLinks = (mdFiles, directory, quietMode, noEmptyFiles) => {
     const totalLinksByFile = {};
     const totalLinks = {
         error: 0,
-        success: 0
+        success: 0,
+        warning: 0
     };
     mdFiles.forEach((mdFile) => {
+        const messages = [];
         totalLinksByFile[mdFile.path] = {
             error: 0,
-            success: 0
+            success: 0,
+            warning: 0
         };
-        if (!quietMode) {
+        mdFile.links.forEach((link) => {
+            if (link.isValid && link.statusCode !== 204) {
+                totalLinksByFile[mdFile.path].success++;
+                messages.push({
+                    level: 'info',
+                    message: chalk.green(`✔ [${link.statusCode}] ${link.link}`)
+                });
+            }
+            else {
+                const level = !noEmptyFiles && link.statusCode === 204 ? 'warning' : 'error';
+                const errorMessage = chalk.red(`✖ [${link.statusCode}] ${link.link}:${link.position.line}:${link.position.column}`);
+                const warningMessage = chalk.yellow(`○ [${link.statusCode}] ${link.link}:${link.position.line}:${link.position.column}`);
+                totalLinksByFile[mdFile.path][level]++;
+                messages.push({
+                    level,
+                    message: level === 'warning' ? warningMessage : errorMessage
+                });
+            }
+        });
+        if (!quietMode || totalLinksByFile[mdFile.path].warning > 0 || totalLinksByFile[mdFile.path].error > 0) {
             console.log('');
             console.log(chalk.cyan(mdFile.path));
+            messages
+                .filter((message) => {
+                return quietMode ? ['error', 'warning', undefined].includes(message.level) : true;
+            })
+                .forEach((message) => {
+                console.log(message.message);
+            });
         }
-        mdFile.links.forEach((link) => {
-            if (link.isValid) {
-                totalLinksByFile[mdFile.path].success++;
-                if (!quietMode) {
-                    console.log(chalk.green(`✔ [${link.statusCode}] ${link.link}`));
-                }
-                return;
-            }
-            totalLinksByFile[mdFile.path].error++;
-            if (quietMode && totalLinksByFile[mdFile.path].error === 1) {
-                console.log('');
-                console.log(chalk.cyan(mdFile.path));
-            }
-            console.log(chalk.red(`✖ [${link.statusCode}] ${link.link}:${link.position.line}:${link.position.column}`));
-        });
         totalLinks.success += totalLinksByFile[mdFile.path].success;
         totalLinks.error += totalLinksByFile[mdFile.path].error;
         let chalkColor = chalk.green;
         if (totalLinksByFile[mdFile.path].error > 0) {
             chalkColor = chalk.red;
         }
-        if (!quietMode) {
+        if (!quietMode || totalLinksByFile[mdFile.path].error > 0) {
             console.log(chalkColor(`Found ${totalLinksByFile[mdFile.path].error + totalLinksByFile[mdFile.path].success} links:
     ${totalLinksByFile[mdFile.path].success} valid
     ${totalLinksByFile[mdFile.path].error} invalid`));
@@ -96,10 +110,12 @@ const reportLinks = (mdFiles, directory, quietMode) => {
     if (totalLinks.error > 0) {
         chalkColor = chalk.red;
     }
-    console.log('');
-    console.log(chalkColor(`Found a total of ${totalLinks.error + totalLinks.success} links in directory "${directory}":
+    if (!quietMode || totalLinks.error > 0) {
+        console.log('');
+        console.log(chalkColor(`Found a total of ${totalLinks.error + totalLinks.success} links in directory "${directory}":
     ${totalLinks.success} valid
     ${totalLinks.error} invalid`));
+    }
 };
 /**
  * Execute the analysis for the directories passed as parameter.
@@ -154,11 +170,13 @@ const execute = async (args) => {
         /* Get all md files */
         const mdFiles = await getMDFiles(directory, ignorePatterns, ignoreStatusCodes, currentOptions.optionalMdExtension, currentOptions.allowOtherExtensions, currentOptions.noEmptyFiles);
         await validateLinks(mdFiles);
-        reportLinks(mdFiles, directory, currentOptions.quietMode);
+        reportLinks(mdFiles, directory, currentOptions.quietMode, currentOptions.noEmptyFiles);
         invalidLinks = invalidLinks.concat(getInvalidLinks(mdFiles));
     }
-    console.log('');
-    console.log(`Time to validate: ${(Date.now() - start) / 1000}s`);
+    if (!currentOptions.quietMode) {
+        console.log('');
+        console.log(`Time to validate: ${(Date.now() - start) / 1000}s`);
+    }
     if (invalidLinks.length > 0) {
         return 1;
     }

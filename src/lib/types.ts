@@ -40,3 +40,8 @@ export interface IMDFile {
     titles: Set<string>;
     validateLinks: () => Promise<void>;
 }
+
+export type Message = {
+    message: string;
+    level?: 'info' | 'warning' | 'error';
+}
