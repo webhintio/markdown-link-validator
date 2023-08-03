@@ -11,24 +11,26 @@ export type CLIOptions = {
     ignorePatternsFrom: string;
     ignoreStatusCodes: number[];
 };
-export type Issue = {
-    message: string;
-    path: string;
-};
 export type Position = {
     line: number;
     column: number;
 };
-export interface ILink {
-    link: string;
+interface IFragment {
     isValid: boolean;
     position: Position;
     statusCode?: number;
+}
+export interface ILink extends IFragment {
+    link: string;
+}
+export interface ILabel extends IFragment {
+    label: string;
 }
 export interface IMDFile {
     absoluteLinks: Set<ILink>;
     internalLinks: Set<ILink>;
     invalidLinks: Set<ILink>;
+    invalidLinkLabels: Set<ILabel>;
     links: Set<ILink>;
     path: string;
     relativeLinks: Set<ILink>;
@@ -40,3 +42,4 @@ export type Message = {
     message: string;
     level?: 'info' | 'warning' | 'error';
 };
+export {};

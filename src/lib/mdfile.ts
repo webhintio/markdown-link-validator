@@ -5,8 +5,9 @@ import uslug from 'uslug';
 
 import request from './utils/request.js';
 
-import { IMDFile, ILink } from './types.js';
+import { IMDFile, ILink, ILabel } from './types.js';
 import { Link } from './link.js';
+import { Label } from './label.js';
 
 export class MDFile implements IMDFile {
     private _absoluteLinks: Set<ILink>;
@@ -40,6 +41,7 @@ export class MDFile implements IMDFile {
     private _noEmptyFiles: boolean;
     private _internalLinks: Set<ILink>;
     private _invalidLinks: Set<ILink>;
+    private _invalidLabels: Set<ILabel>;
     /**
      * This regex should match the following examples:
      * * [link](#somewhere)
@@ -50,6 +52,8 @@ export class MDFile implements IMDFile {
     private _links: Set<ILink>;
     private _path: string;
     private _relativeLinks: Set<ILink>;
+    private _linkLabels: Set<ILabel>;
+    private _linkAnchors: Set<string>;
     private _directory: string;
     private _relativePath: string;
     /**
@@ -75,6 +79,13 @@ export class MDFile implements IMDFile {
      */
     private _relativeRegex: RegExp = /(?<![!`].*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)(?!.*?`)/g;
     private _relativeRegexWithImages: RegExp = /(?<!`.*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)(?!.*?`)/g;
+    /**
+     * This regex should match the link labels and anchors:
+     * * Text with a [link][anchor].
+     * * [anchor]: http://example.com
+     */
+    private _labelRegex: RegExp = new RegExp(`\\[.+?\\]\\[(.+?)\\]`, 'g');
+    private _anchorRegex: RegExp = new RegExp(`(?<![-*]\\s+)\\[(.+?)\\]:\\s*`, 'g');
     private _titles: Set<string>;
     private _titleRegex: RegExp = /^#{1,6}\s+(.*)$/gm;
     private _normalizedTitles: Set<string>;
@@ -87,6 +98,8 @@ export class MDFile implements IMDFile {
         this._cache = new Set();
         this._internalLinks = new Set();
         this._relativeLinks = new Set();
+        this._linkLabels = new Set();
+        this._linkAnchors = new Set();
         this._titles = new Set();
         this._normalizedTitles = new Set();
         this._ignorePatterns = ignorePatterns;
@@ -101,6 +114,8 @@ export class MDFile implements IMDFile {
         this.getRelativeLinks();
         this.getAbsoluteLinks();
         this.getInternalLinks();
+        this.getLinkLabels();
+        this.getLinkAnchors();
         this.getTitles();
     }
 
@@ -181,6 +196,26 @@ export class MDFile implements IMDFile {
 
             this._cache.add(url);
             this._internalLinks.add(new Link(url, val.index + 2, this._content));
+        }
+    }
+
+    private getLinkLabels() {
+        let val: RegExpExecArray;
+
+        while ((val = this._labelRegex.exec(this._content)) !== null) {
+            const label: string = val[1];
+
+            this._linkLabels.add(new Label(label, val.index, this._content));
+        }
+    }
+
+    private getLinkAnchors() {
+        let val: RegExpExecArray;
+
+        while ((val = this._anchorRegex.exec(this._content)) !== null) {
+            const anchor: string = val[1];
+
+            this._linkAnchors.add(val[1]);
         }
     }
 
@@ -327,10 +362,29 @@ export class MDFile implements IMDFile {
         });
     }
 
+    private validateLabel(label: ILabel): void {
+        if (this._linkAnchors.has(label.label)) {
+            label.isValid = true;
+            label.statusCode = 200;
+
+            return;
+        }
+
+        label.isValid = false;
+        label.statusCode = 404;
+    }
+
+    public validateLabels(): void {
+        this._linkLabels.forEach((label) => {
+            this.validateLabel(label);
+        });
+    }
+
     public async validateLinks(): Promise<void> {
         await this.validateAbsoluteLinks();
         this.validateRelativeLinks();
         this.validateInternalLinks();
+        this.validateLabels();
     }
 
     public get absoluteLinks() {
@@ -339,6 +393,14 @@ export class MDFile implements IMDFile {
 
     public get internalLinks() {
         return this._internalLinks;
+    }
+
+    public get linkLabels() {
+        return this._linkLabels;
+    }
+
+    public get linkAnchors() {
+        return this._linkAnchors;
     }
 
     public get path() {
@@ -355,6 +417,21 @@ export class MDFile implements IMDFile {
 
     public get titles() {
         return this._titles;
+    }
+
+    public get invalidLinkLabels(): Set<ILabel> {
+        if (this._invalidLabels) {
+            return this._invalidLabels;
+        }
+
+        const invalidLabels = [...this._linkLabels]
+            .filter((label) => {
+                return !label.isValid;
+            });
+
+        this._invalidLabels = new Set(invalidLabels);
+
+        return this._invalidLabels;
     }
 
     public get invalidLinks(): Set<ILink> {

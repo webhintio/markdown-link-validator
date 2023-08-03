@@ -1,4 +1,4 @@
-import { IMDFile, ILink } from './types.js';
+import { IMDFile, ILink, ILabel } from './types.js';
 export declare class MDFile implements IMDFile {
     private _absoluteLinks;
     /**
@@ -31,6 +31,7 @@ export declare class MDFile implements IMDFile {
     private _noEmptyFiles;
     private _internalLinks;
     private _invalidLinks;
+    private _invalidLabels;
     /**
      * This regex should match the following examples:
      * * [link](#somewhere)
@@ -41,6 +42,8 @@ export declare class MDFile implements IMDFile {
     private _links;
     private _path;
     private _relativeLinks;
+    private _linkLabels;
+    private _linkAnchors;
     private _directory;
     private _relativePath;
     /**
@@ -66,6 +69,13 @@ export declare class MDFile implements IMDFile {
      */
     private _relativeRegex;
     private _relativeRegexWithImages;
+    /**
+     * This regex should match the link labels and anchors:
+     * * Text with a [link][anchor].
+     * * [anchor]: http://example.com
+     */
+    private _labelRegex;
+    private _anchorRegex;
     private _titles;
     private _titleRegex;
     private _normalizedTitles;
@@ -74,6 +84,8 @@ export declare class MDFile implements IMDFile {
     private getRelativeLinks;
     private getAbsoluteLinks;
     private getInternalLinks;
+    private getLinkLabels;
+    private getLinkAnchors;
     private getTitles;
     private ignoreLink;
     private validateAbsoluteLinks;
@@ -81,13 +93,18 @@ export declare class MDFile implements IMDFile {
     private validateRelativeLinks;
     private validateInternalLink;
     private validateInternalLinks;
+    private validateLabel;
+    validateLabels(): void;
     validateLinks(): Promise<void>;
     get absoluteLinks(): Set<ILink>;
     get internalLinks(): Set<ILink>;
+    get linkLabels(): Set<ILabel>;
+    get linkAnchors(): Set<string>;
     get path(): string;
     get relativeLinks(): Set<ILink>;
     get relativePath(): string;
     get titles(): Set<string>;
+    get invalidLinkLabels(): Set<ILabel>;
     get invalidLinks(): Set<ILink>;
     get links(): Set<ILink>;
 }

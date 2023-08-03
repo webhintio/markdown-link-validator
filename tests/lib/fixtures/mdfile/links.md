@@ -55,6 +55,8 @@ This is a repeated relative link using [link label][relative link4]
 
 This is a repeated relative link using [link label][relative link5]
 
+This is a repeated relative link using [link label][missing anchor]
+
 [absolute link]: http://example2.com
 [absolute link2]:http://example3.com#title
 [absolute link3]:   http://example4.com

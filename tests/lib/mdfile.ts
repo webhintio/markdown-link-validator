@@ -62,6 +62,10 @@ const internalPositions = {
 };
 
 const absolutePositions = {
+    'http://example.com': {
+        column: 9,
+        line: 43
+    },
     'https://browsersl.ist/': {
         column: 61,
         line: 35
@@ -155,6 +159,64 @@ const relativeLinks = {
         column: 15,
         line: 36,
         valid: false
+    }
+};
+
+const linkLabels = {
+    'absolute link': {
+        column: 32,
+        line: 18,
+        valid: true
+    },
+    'absolute link2': {
+        column: 42,
+        line: 20,
+        valid: true
+    },
+    'absolute link3': {
+        column: 32,
+        line: 22,
+        valid: true
+    },
+    'absolute link4': {
+        column: 40,
+        line: 24,
+        valid: true
+    },
+    'absolute link5': {
+        column: 40,
+        line: 26,
+        valid: true
+    },
+    'missing anchor': {
+        column: 40,
+        line: 58,
+        valid: false
+    },
+    'relative link': {
+        column: 31,
+        line: 48,
+        valid: true
+    },
+    'relative link2': {
+        column: 41,
+        line: 50,
+        valid: true
+    },
+    'relative link3': {
+        column: 31,
+        line: 52,
+        valid: true
+    },
+    'relative link4': {
+        column: 40,
+        line: 54,
+        valid: true
+    },
+    'relative link5': {
+        column: 40,
+        line: 56,
+        valid: true
     }
 };
 
@@ -259,5 +321,24 @@ test('Relative links are validated correctly', async (t) => {
 
     mdfile.relativeLinks.forEach((link) => {
         t.is(link.isValid, relativeLinks[link.link].valid);
+    });
+});
+
+test('Link labels positions are calculated correctly', (t) => {
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], [200]);
+
+    mdfile.linkLabels.forEach((linkLabel) => {
+        t.is(linkLabel.position.column, linkLabels[linkLabel.label].column);
+        t.is(linkLabel.position.line, linkLabels[linkLabel.label].line);
+    });
+});
+
+test('Link labels are validated correctly', (t) => {
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], [200]);
+
+    mdfile.validateLabels();
+
+    mdfile.linkLabels.forEach((linkLabel) => {
+        t.is(linkLabel.isValid, linkLabels[linkLabel.label].valid);
     });
 });

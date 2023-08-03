@@ -3,6 +3,7 @@ import path from 'path';
 import uslug from 'uslug';
 import request from './utils/request.js';
 import { Link } from './link.js';
+import { Label } from './label.js';
 export class MDFile {
     _absoluteLinks;
     /**
@@ -35,6 +36,7 @@ export class MDFile {
     _noEmptyFiles;
     _internalLinks;
     _invalidLinks;
+    _invalidLabels;
     /**
      * This regex should match the following examples:
      * * [link](#somewhere)
@@ -45,6 +47,8 @@ export class MDFile {
     _links;
     _path;
     _relativeLinks;
+    _linkLabels;
+    _linkAnchors;
     _directory;
     _relativePath;
     /**
@@ -70,6 +74,13 @@ export class MDFile {
      */
     _relativeRegex = /(?<![!`].*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)(?!.*?`)/g;
     _relativeRegexWithImages = /(?<!`.*?)]\(([./][^)]*)\)|(]:\s*)([./][^\s]*)(?!.*?`)/g;
+    /**
+     * This regex should match the link labels and anchors:
+     * * Text with a [link][anchor].
+     * * [anchor]: http://example.com
+     */
+    _labelRegex = new RegExp(`\\[.+?\\]\\[(.+?)\\]`, 'g');
+    _anchorRegex = new RegExp(`(?<![-*]\\s+)\\[(.+?)\\]:\\s*`, 'g');
     _titles;
     _titleRegex = /^#{1,6}\s+(.*)$/gm;
     _normalizedTitles;
@@ -81,6 +92,8 @@ export class MDFile {
         this._cache = new Set();
         this._internalLinks = new Set();
         this._relativeLinks = new Set();
+        this._linkLabels = new Set();
+        this._linkAnchors = new Set();
         this._titles = new Set();
         this._normalizedTitles = new Set();
         this._ignorePatterns = ignorePatterns;
@@ -93,6 +106,8 @@ export class MDFile {
         this.getRelativeLinks();
         this.getAbsoluteLinks();
         this.getInternalLinks();
+        this.getLinkLabels();
+        this.getLinkAnchors();
         this.getTitles();
     }
     stripCodeBlocks() {
@@ -154,6 +169,20 @@ export class MDFile {
             }
             this._cache.add(url);
             this._internalLinks.add(new Link(url, val.index + 2, this._content));
+        }
+    }
+    getLinkLabels() {
+        let val;
+        while ((val = this._labelRegex.exec(this._content)) !== null) {
+            const label = val[1];
+            this._linkLabels.add(new Label(label, val.index, this._content));
+        }
+    }
+    getLinkAnchors() {
+        let val;
+        while ((val = this._anchorRegex.exec(this._content)) !== null) {
+            const anchor = val[1];
+            this._linkAnchors.add(val[1]);
         }
     }
     getTitles() {
@@ -265,16 +294,37 @@ export class MDFile {
             this.validateInternalLink(link);
         });
     }
+    validateLabel(label) {
+        if (this._linkAnchors.has(label.label)) {
+            label.isValid = true;
+            label.statusCode = 200;
+            return;
+        }
+        label.isValid = false;
+        label.statusCode = 404;
+    }
+    validateLabels() {
+        this._linkLabels.forEach((label) => {
+            this.validateLabel(label);
+        });
+    }
     async validateLinks() {
         await this.validateAbsoluteLinks();
         this.validateRelativeLinks();
         this.validateInternalLinks();
+        this.validateLabels();
     }
     get absoluteLinks() {
         return this._absoluteLinks;
     }
     get internalLinks() {
         return this._internalLinks;
+    }
+    get linkLabels() {
+        return this._linkLabels;
+    }
+    get linkAnchors() {
+        return this._linkAnchors;
     }
     get path() {
         return this._path;
@@ -287,6 +337,17 @@ export class MDFile {
     }
     get titles() {
         return this._titles;
+    }
+    get invalidLinkLabels() {
+        if (this._invalidLabels) {
+            return this._invalidLabels;
+        }
+        const invalidLabels = [...this._linkLabels]
+            .filter((label) => {
+            return !label.isValid;
+        });
+        this._invalidLabels = new Set(invalidLabels);
+        return this._invalidLabels;
     }
     get invalidLinks() {
         if (this._invalidLinks) {

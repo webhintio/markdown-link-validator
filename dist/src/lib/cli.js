@@ -46,8 +46,12 @@ const validateLinks = async (mdFiles) => {
 };
 const getInvalidLinks = (mdFiles) => {
     return mdFiles.reduce((total, mdFile) => {
-        const invalidLinks = [...mdFile.invalidLinks];
         return [...total, ...mdFile.invalidLinks];
+    }, []);
+};
+const getInvalidLinkLabels = (mdFiles) => {
+    return mdFiles.reduce((total, mdFile) => {
+        return [...total, ...mdFile.invalidLinkLabels];
     }, []);
 };
 const reportLinks = (mdFiles, directory, quietMode, noEmptyFiles) => {
@@ -83,6 +87,13 @@ const reportLinks = (mdFiles, directory, quietMode, noEmptyFiles) => {
                 });
             }
         });
+        mdFile.invalidLinkLabels.forEach((linkLabel) => {
+            totalLinksByFile[mdFile.path].error++;
+            messages.push({
+                level: 'error',
+                message: chalk.red(`✖ [${linkLabel.statusCode}] ${linkLabel.label}:${linkLabel.position.line}:${linkLabel.position.column}`)
+            });
+        });
         if (!quietMode || totalLinksByFile[mdFile.path].warning > 0 || totalLinksByFile[mdFile.path].error > 0) {
             console.log('');
             console.log(chalk.cyan(mdFile.path));
@@ -101,7 +112,7 @@ const reportLinks = (mdFiles, directory, quietMode, noEmptyFiles) => {
             chalkColor = chalk.red;
         }
         if (!quietMode || totalLinksByFile[mdFile.path].error > 0) {
-            console.log(chalkColor(`Found ${totalLinksByFile[mdFile.path].error + totalLinksByFile[mdFile.path].success} links:
+            console.log(chalkColor(`Found ${totalLinksByFile[mdFile.path].error + totalLinksByFile[mdFile.path].success} links and labels:
     ${totalLinksByFile[mdFile.path].success} valid
     ${totalLinksByFile[mdFile.path].error} invalid`));
         }
@@ -112,7 +123,7 @@ const reportLinks = (mdFiles, directory, quietMode, noEmptyFiles) => {
     }
     if (!quietMode || totalLinks.error > 0) {
         console.log('');
-        console.log(chalkColor(`Found a total of ${totalLinks.error + totalLinks.success} links in directory "${directory}":
+        console.log(chalkColor(`Found a total of ${totalLinks.error + totalLinks.success} links and labels in directory "${directory}":
     ${totalLinks.success} valid
     ${totalLinks.error} invalid`));
     }
@@ -165,6 +176,7 @@ const execute = async (args) => {
     });
     debug(`Directories to analyze: ${directories.toString()}`);
     let invalidLinks = [];
+    let invalidLinkLabels = [];
     const start = Date.now();
     for (const directory of directories) {
         /* Get all md files */
@@ -172,12 +184,13 @@ const execute = async (args) => {
         await validateLinks(mdFiles);
         reportLinks(mdFiles, directory, currentOptions.quietMode, currentOptions.noEmptyFiles);
         invalidLinks = invalidLinks.concat(getInvalidLinks(mdFiles));
+        invalidLinkLabels = invalidLinkLabels.concat(getInvalidLinkLabels(mdFiles));
     }
     if (!currentOptions.quietMode) {
         console.log('');
         console.log(`Time to validate: ${(Date.now() - start) / 1000}s`);
     }
-    if (invalidLinks.length > 0) {
+    if (invalidLinks.length > 0 || invalidLinkLabels.length > 0) {
         return 1;
     }
     return 0;
