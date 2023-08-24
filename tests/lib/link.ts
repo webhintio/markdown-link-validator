@@ -1,9 +1,13 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import test from 'ava';
 
-import { Link } from '../../src/lib/link';
+import { Link } from '../../src/lib/link.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const content: string = fs.readFileSync(path.join(__dirname, 'fixtures', 'link', 'content.md'), { encoding: 'utf-8' }); // eslint-disable-line no-sync
 

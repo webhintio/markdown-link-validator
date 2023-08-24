@@ -1,14 +1,14 @@
-import { ILink, Position } from './types.js';
+import { ILabel, Position } from './types.js';
 
-export class Link implements ILink {
+export class Label implements ILabel {
     private _isValid: boolean;
     private _statusCode: number;
-    private _link: string;
+    private _label: string;
     private _position: Position;
 
-    public constructor(link: string, index: number, content: string) {
-        if (!link) {
-            throw new Error(`"link" can't be empty or null`);
+    public constructor(label: string, index: number, content: string) {
+        if (!label) {
+            throw new Error(`"label" can't be empty or null`);
         }
 
         if (typeof index !== 'number') {
@@ -19,7 +19,7 @@ export class Link implements ILink {
             throw new Error(`"content" can't be empty or null`);
         }
 
-        this._link = link;
+        this._label = label;
 
         this.getPosition(index, content);
     }
@@ -34,8 +34,8 @@ export class Link implements ILink {
         };
     }
 
-    public get link() {
-        return this._link;
+    public get label() {
+        return this._label;
     }
 
     public get position() {

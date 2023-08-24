@@ -24,7 +24,7 @@ node_modules/
 .vscode
  
 # Compiled files
-dist/
+dist/tests
 
 # Test output
 .nyc_output/

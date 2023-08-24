@@ -1,6 +1,10 @@
-import * as sinon from 'sinon';
+import sinon from 'sinon';
 import test from 'ava';
-import * as mock from 'mock-require';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const request = {
     get(): Promise<boolean> {
@@ -8,9 +12,7 @@ const request = {
     }
 };
 
-mock('../../src/lib/utils/request.js', request);
-
-const { MDFile } = require('../../src/lib/mdfile');
+import { MDFile } from '../../src/lib/mdfile.js';
 
 const internalPositions = {
     '#can-evaluatescript': {
@@ -60,9 +62,17 @@ const internalPositions = {
 };
 
 const absolutePositions = {
+    'http://example.com': {
+        column: 9,
+        line: 43
+    },
+    'https://browsersl.ist/': {
+        column: 61,
+        line: 35
+    },
     'https://github.com/ai/browserslist#queries': {
         column: 26,
-        line: 37
+        line: 39
     },
     'https://github.com/ai/browserslist#readme': {
         column: 32,
@@ -70,24 +80,39 @@ const absolutePositions = {
     },
     'https://webhint.io/docs/hints/hint-highest-available-document-mode/': {
         column: 14,
-        line: 38
+        line: 40
     }
 };
 
 const relativeLinks = {
-    '../mdfile': {
-        column: 36,
-        line: 5,
+    '../assets/not-md.txt': {
+        column: 33,
+        line: 7,
+        valid: true
+    },
+    '../assets/pixel.png': {
+        column: 21,
+        line: 9,
+        valid: true
+    },
+    '../link/empty.md': {
+        column: 15,
+        line: 37,
         valid: false
     },
     '../mdfile/valid-internal.md#canevaluatescript': {
         column: 19,
-        line: 22,
+        line: 34,
         valid: false
     },
     '../mdfile/valid-internal.md#elementelement-type': {
         column: 19,
-        line: 21,
+        line: 33,
+        valid: true
+    },
+    './absolute-links': {
+        column: 33,
+        line: 5,
         valid: true
     },
     './absolute-links.md': {
@@ -95,41 +120,119 @@ const relativeLinks = {
         line: 3,
         valid: true
     },
+    './folder-link': {
+        column: 33,
+        line: 11,
+        valid: true
+    },
     './invalid-internal.md': {
         column: 18,
-        line: 19,
+        line: 31,
         valid: true
     },
     './invalid.md': {
         column: 19,
-        line: 20,
+        line: 32,
         valid: false
     },
     './valid-internal.md#canevaluatescript': {
         column: 54,
-        line: 9,
+        line: 17,
         valid: false
     },
     './valid-internal.md#elementelement-type': {
         column: 51,
-        line: 7,
+        line: 15,
+        valid: true
+    },
+    '/fixtures/mdfile/absolute-links.md': {
+        column: 29,
+        line: 13,
+        valid: true
+    },
+    '/fixtures/mdfile/valid-internal.md': {
+        column: 15,
+        line: 35,
+        valid: true
+    },
+    '/invalid-root.md': {
+        column: 15,
+        line: 36,
+        valid: false
+    }
+};
+
+const linkLabels = {
+    'absolute link': {
+        column: 32,
+        line: 18,
+        valid: true
+    },
+    'absolute link2': {
+        column: 42,
+        line: 20,
+        valid: true
+    },
+    'absolute link3': {
+        column: 32,
+        line: 22,
+        valid: true
+    },
+    'absolute link4': {
+        column: 40,
+        line: 24,
+        valid: true
+    },
+    'absolute link5': {
+        column: 40,
+        line: 26,
+        valid: true
+    },
+    'missing anchor': {
+        column: 40,
+        line: 58,
+        valid: false
+    },
+    'relative link': {
+        column: 31,
+        line: 48,
+        valid: true
+    },
+    'relative link2': {
+        column: 41,
+        line: 50,
+        valid: true
+    },
+    'relative link3': {
+        column: 31,
+        line: 52,
+        valid: true
+    },
+    'relative link4': {
+        column: 40,
+        line: 54,
+        valid: true
+    },
+    'relative link5': {
+        column: 40,
+        line: 56,
         valid: true
     }
 };
 
 test('Create a new MDFile has to found all the links in the markdown file', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], [200], false, true);
 
     t.is(mdfile.internalLinks.size, 2);
     // There is more than 5 absolute links, but 5 are uniques.
     t.is(mdfile.absoluteLinks.size, 5);
     // There is more than 7 relative links, but 7 are uniques.
-    t.is(mdfile.relativeLinks.size, 7);
+    t.is(mdfile.relativeLinks.size, 8);
     t.is(mdfile.titles.size, 3);
 });
 
 test('Internal links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', [], [200]);
 
     await mdfile.validateLinks();
 
@@ -139,7 +242,7 @@ test('Internal links are validated correctly', async (t) => {
 });
 
 test('Internal links positions are calculated correctly', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/valid-internal.md', [], [200]);
 
     mdfile.internalLinks.forEach((link) => {
         const expectedPosition = internalPositions[link.link];
@@ -150,7 +253,7 @@ test('Internal links positions are calculated correctly', (t) => {
 });
 
 test('Invalid internal links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/invalid-internal.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/invalid-internal.md', [], [200]);
 
     await mdfile.validateLinks();
 
@@ -166,8 +269,7 @@ test('Invalid internal links are validated correctly', async (t) => {
 });
 
 test('Absolute links positions are calculated correctly', (t) => {
-    const { MDFile } = require('../../src/lib/mdfile');
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', [], [200]);
 
     mdfile.absoluteLinks.forEach((link) => {
         const expectedPosition = absolutePositions[link.link];
@@ -184,7 +286,7 @@ test('Absolute links are validated correctly', async (t) => {
         .resolves(false);
     stub.resolves(true);
 
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/absolute-links.md', [], [200]);
 
     await mdfile.validateLinks();
 
@@ -202,7 +304,7 @@ test('Absolute links are validated correctly', async (t) => {
 });
 
 test('Relative links positions are calculated correctly', (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], [200]);
 
     mdfile.relativeLinks.forEach((link) => {
         const expectedPosition = relativeLinks[link.link];
@@ -213,11 +315,30 @@ test('Relative links positions are calculated correctly', (t) => {
 });
 
 test('Relative links are validated correctly', async (t) => {
-    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', []);
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/relative-links.md', [], [200], true, true, true);
 
     await mdfile.validateLinks();
 
     mdfile.relativeLinks.forEach((link) => {
         t.is(link.isValid, relativeLinks[link.link].valid);
+    });
+});
+
+test('Link labels positions are calculated correctly', (t) => {
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], [200]);
+
+    mdfile.linkLabels.forEach((linkLabel) => {
+        t.is(linkLabel.position.column, linkLabels[linkLabel.label].column);
+        t.is(linkLabel.position.line, linkLabels[linkLabel.label].line);
+    });
+});
+
+test('Link labels are validated correctly', (t) => {
+    const mdfile = new MDFile(__dirname, 'fixtures/mdfile/links.md', [], [200]);
+
+    mdfile.validateLabels();
+
+    mdfile.linkLabels.forEach((linkLabel) => {
+        t.is(linkLabel.isValid, linkLabels[linkLabel.label].valid);
     });
 });

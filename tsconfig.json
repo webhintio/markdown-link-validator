@@ -1,10 +1,11 @@
 {
     "compilerOptions": {
         "alwaysStrict": true,
-        "module": "commonjs",
+        "module": "NodeNext",
         "sourceMap": true,
         "target": "esnext",
         "declaration": true,
+        "esModuleInterop": true,
         "lib": [
             "es2017",
             "esnext",

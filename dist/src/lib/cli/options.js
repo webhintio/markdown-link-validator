@@ -1,21 +1,19 @@
 /**
  * @fileoverview Options configuration for optionator.
  */
-
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
 /*
  * ------------------------------------------------------------------------------
  * Requirements
  * ------------------------------------------------------------------------------
  */
-
-import optionator = require('optionator'); // `require` used because `optionator` exports a function
-
+const optionator = __require("optionator"); // `require` used because `optionator` exports a function
 /*
  * ------------------------------------------------------------------------------
  * Initialization and Public Interface
  * ------------------------------------------------------------------------------
  */
-
 export const options = optionator({
     defaults: {
         concatRepeatedArrays: true,
@@ -91,3 +89,4 @@ export const options = optionator({
     ],
     prepend: 'markdown-link-validator ./path/to/mds [options]'
 });
+//# sourceMappingURL=options.js.map
